@@ -61,17 +61,17 @@ public class Validator {
 		// TODO Game string not valid if there are more strings after game over
 		
 		//This block is for testing only
-		StringBuilder fun = new StringBuilder();
-		Display board = new Board();
+		//StringBuilder fun = new StringBuilder();
+		//Display board = new Board();
 		
 		boolean valid = true;
 		int i = 0;
 		for (String e:moves) {
 			
 			//This block is for testing only
-			fun.append(e+" ");
-			System.out.println("Turn: "+i+" | Player: "+i%2+" | Move: "+e);
-			board.display(fun.toString());
+			//fun.append(e+" ");
+			//System.out.println("Turn: "+i+" | Player: "+i%2+" | Move: "+e);
+			//board.display(fun.toString());
 			
 			if (e.length() == 3) {
 				if (i%2==0) {
