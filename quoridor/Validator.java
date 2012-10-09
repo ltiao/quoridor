@@ -1,8 +1,10 @@
 package quoridor;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.StringTokenizer;
+import java.util.List;
+import java.util.Queue;
 
 public class Validator {
 
@@ -20,7 +22,8 @@ public class Validator {
 	
 	Square player1Square = new Square("e9");
 	Square player2Square = new Square("e1");
-	LinkedList <Wall> walls = new LinkedList<Wall>();
+	LinkedList <Wall> player1Walls = new LinkedList<Wall>();
+	LinkedList <Wall> player2Walls = new LinkedList<Wall>();
 	
 	public Validator() {
 		for (int i = 0; i < Board.BOARD_SIZE; i++) {
@@ -37,7 +40,6 @@ public class Validator {
 				adjacencyList.put(new Square(i,j), temp);
 			}
 		}
-		//updatePawnSquareAdjacency();
 	}
 	
 	public void displayAdjacencyList () {
@@ -55,39 +57,59 @@ public class Validator {
 	 * @param moves a list of successive moves
 	 * @return validity of the list of moves
 	 */
-	public boolean check(String moves) {
+	public boolean check(List<String> moves) {
 		// TODO Game string not valid if there are more strings after game over
 		
 		//This block is for testing only
-		//StringBuilder fun = new StringBuilder();
-		//Display board = new Board();
+		StringBuilder fun = new StringBuilder();
+		Display board = new Board();
 		
 		boolean valid = true;
-		StringTokenizer st = new StringTokenizer(moves);
-		for (int i = 0; st.hasMoreTokens() && valid == true ; i++) {
-			String temp = st.nextToken();
-			//This block is for testing only
-			//fun.append(temp+" ");
-			//System.out.println("Turn: "+i+" | Player: "+i%2);
-			//board.display(fun.toString());
+		int i = 0;
+		for (String e:moves) {
 			
-			if (temp.length() == 3) {
-				valid &= isValidWallPlacement(new Wall(temp));
-			} else {
+			//This block is for testing only
+			fun.append(e+" ");
+			System.out.println("Turn: "+i+" | Player: "+i%2+" | Move: "+e);
+			board.display(fun.toString());
+			
+			if (e.length() == 3) {
 				if (i%2==0) {
-					if (isValidTraversal(player1Square, new Square(temp))) {
-						player1Square = new Square (temp);
+					System.out.println(player1Walls.size());
+					if(isValidWallPlacement(new Wall(e))) {
+						player1Walls.add(new Wall(e));
+						if (player1Walls.size() > 10) {
+							return false;
+						}
 					} else {
 						return false;
 					}
 				} else {
-					if (isValidTraversal(player2Square, new Square(temp))) {
-						player2Square = new Square (temp);
+					if(isValidWallPlacement(new Wall(e))) {
+						player2Walls.add(new Wall(e));
+						if (player1Walls.size() > 10) {
+							return false;
+						}
+					} else {
+						return false;
+					}
+				}
+			} else {
+				if (i%2==0) {
+					if (isValidTraversal(player1Square, new Square(e))) {
+						player1Square = new Square (e);
+					} else {
+						return false;
+					}
+				} else {
+					if (isValidTraversal(player2Square, new Square(e))) {
+						player2Square = new Square (e);
 					} else {
 						return false;
 					}
 				}	
 			}
+			i++;
 		}
 		return valid;
 	}
@@ -112,40 +134,43 @@ public class Validator {
 	 * @return
 	 */
 	public boolean isValidTraversal (Square a, Square b) {
-		if (a.equals(b)) {
+		if (b.equals(player1Square) || b.equals(player2Square)) {
 			return false;
 		}
-		if (adjacencyList.get(a).contains(b)) {
+		if (adjacencyList.get(a).contains(player1Square) || adjacencyList.get(a).contains(player2Square)) {
+			return adjacencyList.get(player1Square).contains(b) || adjacencyList.get(player2Square).contains(b);
+		} else if (adjacencyList.get(a).contains(b)) {
 			return true;
-		} else {
-			if (adjacencyList.get(a).contains(player1Square) || adjacencyList.get(a).contains(player2Square)) {
-				return adjacencyList.get(player1Square).contains(b) || adjacencyList.get(player2Square).contains(b);
-			}
 		}
 		return false;
 	}
 	
-	public boolean isOver (String moves) {
-		StringTokenizer st = new StringTokenizer(moves);
-		for (int i = 0; st.hasMoreTokens() ; i++) {
-			if (i%2==0) {
-				if (st.nextToken().endsWith("1")) {
-					return true;
+	public List <Square> shortestPath (Square src, Square dest) {
+		List<Square> path = new LinkedList<Square>();
+		Queue <Square> queue = new LinkedList<Square>();
+		HashMap <Square,Square> parentNode = new HashMap<Square,Square>();
+		// enqueue start configuration onto queue
+		queue.add(src);
+		// mark start configuration
+		parentNode.put(src, null);
+		while (!queue.isEmpty()) {
+			Square t = queue.poll();
+			if (t.equals(dest)) {
+				while (!t.equals(src)) {
+					path.add(t);
+					t = parentNode.get(t);
 				}
-			} else {
-				if (st.nextToken().endsWith("9")) {
-					return true;
+				Collections.reverse(path);
+				return path;
+			}
+			for (Square e: adjacencyList.get(t)) {
+				if (!parentNode.containsKey(e)) {
+					parentNode.put(e, t);
+					queue.add(e);
 				}
 			}
 		}
-		return false;
-	}
-	
-	public LinkedList <Square> shortestPath (Square src, Square dest) {
-		// TODO Dijkstra's algorithm
-		LinkedList <Square> temp = new LinkedList<Square>();
-		temp.add(new Square("e8"));
-		return temp;
+		return path;
 	}
 	
 	/**
@@ -175,6 +200,15 @@ public class Validator {
 	
 	public boolean isValidWallPlacement (Wall wall) {
 		
+		LinkedList<Wall> walls = new LinkedList<Wall>();
+		walls.addAll(player1Walls);
+		walls.addAll(player2Walls);
+		
+		// Check wall is not being placed at border
+		if (wall.northWest.getColumn()==8 || wall.northWest.getRow()==8) {
+			return false;
+		}
+		
 		// Check wall is not intersecting existing wall
 		if (wall.orientation == Orientation.HORIZONTAL) {
 			if (walls.contains(wall) || walls.contains(wall.neighbor(0, 0, Orientation.VERTICAL)) || walls.contains(wall.neighbor(0, -1, Orientation.HORIZONTAL)) || walls.contains(wall.neighbor(0, 1, Orientation.HORIZONTAL))) {
@@ -201,7 +235,7 @@ public class Validator {
 		// by the placement of a wall, undo it, otherwise
 		// store the new wall in the list of walls
 		if (hasPathToGoal()) {
-			walls.add(wall);
+			//walls.add(wall);
 			return true;
 		} else {
 			adjacencyList = backup;
@@ -213,50 +247,6 @@ public class Validator {
 	public void removeEdge (Square a, Square b) {
 		adjacencyList.get(a).remove(b);
 		adjacencyList.get(b).remove(a);
-	}
-	
-	// This is not really the same thing as "addEdge" so not names as such.
-	// It is intended to "undo" a removeEdge.
-	public void unremoveEdge (Square a, Square b) {
-		adjacencyList.get(a).add(b);
-		adjacencyList.get(b).add(a);
-	}
-	
-	// TODO This is so wrong LMFAO. I must've been high or something #YOLO #SWAG
-	public int[][] adjacencyMatrix () {
-		int[][] adjacencyMatrix = new int[81][81];
-		int i = 0;
-		for (Square e:adjacencyList.keySet()) {
-			// System.out.println(e+": "+adjacencyList.get(e));
-			for (int j = 0; j < Board.BOARD_SIZE; j++) {
-				if (adjacencyList.get(e).contains(new Square(i,j))) {
-					adjacencyMatrix[i][j]=1;
-				} else {
-					adjacencyMatrix[i][j]=0;
-				}
-			}
-			i++;
-		}
-		return adjacencyMatrix;
-	}
-	
-	public void updatePawnSquareAdjacency() {
-		
-		
-		
-		for (Square e:adjacencyList.get(player1Square)) {
-			if (!e.equals(player2Square)) {
-				adjacencyList.get(e).addAll(adjacencyList.get(player1Square));
-				adjacencyList.get(e).remove(e);
-				adjacencyList.get(e).remove(player1Square);
-			}
-		}
-		
-		for (Square e:adjacencyList.get(player2Square)) {
-			adjacencyList.get(e).addAll(adjacencyList.get(player2Square));
-			adjacencyList.get(e).remove(e);
-			adjacencyList.get(e).remove(player2Square);
-		}
 	}
 	
 }

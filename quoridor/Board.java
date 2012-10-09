@@ -13,7 +13,7 @@ public class Board implements Display {
 	Square player1Square = new Square("e9");
 	Square player2Square = new Square("e1");
 	LinkedList <Wall> walls = new LinkedList<Wall>();
-	private HashMap <Square,Orientation> johnWalls = new HashMap<Square,Orientation>();
+	private HashMap <Square,Orientation> wallLookup = new HashMap<Square,Orientation>();
 	
 	@Override
 	public void display(String moves) {
@@ -56,25 +56,13 @@ public class Board implements Display {
 	     // Square should be strictly used to model actual squares on the game, not as a coordinate system for rendering the ASCII game board.
 	     for (Wall e : walls) {
 	    	 if (e.getOrientation() == Orientation.HORIZONTAL) {
-	    		 johnWalls.put(new Square((e.getNorthWest().getRow()+1)<<1,((e.getNorthWest().getColumn()+1)<<1)+1), e.getOrientation());
-	    		 johnWalls.put(new Square((e.getNorthWest().getRow()+1)<<1,((e.getNorthWest().getColumn()+1)<<1)-1), e.getOrientation());
+	    		 wallLookup.put(new Square((e.getNorthWest().getRow()+1)<<1,((e.getNorthWest().getColumn()+1)<<1)+1), e.getOrientation());
+	    		 wallLookup.put(new Square((e.getNorthWest().getRow()+1)<<1,((e.getNorthWest().getColumn()+1)<<1)-1), e.getOrientation());
 	    	 } else {
-	    		 johnWalls.put(new Square(((e.getNorthWest().getRow()+1)<<1)+1,(e.getNorthWest().getColumn()+1)<<1), e.getOrientation());
-	    		 johnWalls.put(new Square(((e.getNorthWest().getRow()+1)<<1)-1,(e.getNorthWest().getColumn()+1)<<1), e.getOrientation());
+	    		 wallLookup.put(new Square(((e.getNorthWest().getRow()+1)<<1)+1,(e.getNorthWest().getColumn()+1)<<1), e.getOrientation());
+	    		 wallLookup.put(new Square(((e.getNorthWest().getRow()+1)<<1)-1,(e.getNorthWest().getColumn()+1)<<1), e.getOrientation());
 	    	 }
 	     }
-	     /*
-	     for (Square e : walls.keySet()) {
-	    	 //System.out.println(e + " = " + walls.get(e));
-	    	 if (walls.get(e) == Orientation.HORIZONTAL) {
-	    		 johnWalls.put(new Square((e.getX()+1)<<1,((e.getY()+1)<<1)+1), walls.get(e));
-	    		 johnWalls.put(new Square((e.getX()+1)<<1,((e.getY()+1)<<1)-1), walls.get(e));
-	    	 } else {
-	    		 johnWalls.put(new Square(((e.getX()+1)<<1)+1,(e.getY()+1)<<1), walls.get(e));
-	    		 johnWalls.put(new Square(((e.getX()+1)<<1)-1,(e.getY()+1)<<1), walls.get(e));
-	    	 }
-	     }
-	     */
 	}
 	
 	private boolean hasPlayer (int i, int j) {
@@ -84,7 +72,7 @@ public class Board implements Display {
 	}
 
 	private boolean hasWall (int i, int j) {
-		return johnWalls.containsKey(new Square(i, j));
+		return wallLookup.containsKey(new Square(i, j));
 	}
 	
 	private char player (int i, int j) {
