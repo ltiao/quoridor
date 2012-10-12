@@ -5,13 +5,18 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.StringTokenizer;
 
 public class GameState {
+	static final int BOARD_SIZE = 9;
+	static final char PLAYER_1_ICON = 'A';
+	static final char PLAYER_2_ICON = 'B';
 	/**
 	 * A hybrid graph representation as suggested by van Rossum and Cormen et al:
 	 * A hash table is used to associate each vertex with a doubly linked list of adjacent vertices
 	 */
 	protected HashMap <Square,LinkedList<Square>> adjacencyList = new HashMap <Square,LinkedList<Square>> ();
+	private HashMap <Square,Orientation> wallLookup = new HashMap<Square,Orientation>();
 	List <String> moves = new LinkedList<String>();
 	Square player1Square = new Square("e9");
 	Square player2Square = new Square("e1");
@@ -36,7 +41,7 @@ public class GameState {
 			}
 		}
 	}
-	
+
 	/**
 	 * Mutator method for mutating game state. Return false if invalid move.
 	 * @param move
@@ -44,19 +49,32 @@ public class GameState {
 	public boolean move (String move) {
 		boolean valid = true;
 		if (isWallPlacement(move)) {
-			valid &= isValidWallPlacement(new Wall(move));
+			Wall wall = new Wall(move);
+			valid &= isValidWallPlacement(wall);
 			if (turn%2 == 0) {
-				System.out.println(player1Walls.size());
 				valid &= player1Walls.size() < 10;
 				if (valid) {
-					player1Walls.add(new Wall(move));
+					player1Walls.add(wall);
+					if (wall.getOrientation() == Orientation.HORIZONTAL) {
+						wallLookup.put(new Square((wall.getNorthWest().getRow()+1)<<1,((wall.getNorthWest().getColumn()+1)<<1)+1), wall.getOrientation());
+						wallLookup.put(new Square((wall.getNorthWest().getRow()+1)<<1,((wall.getNorthWest().getColumn()+1)<<1)-1), wall.getOrientation());
+					} else {
+						wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)+1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
+						wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)-1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
+					}
 					turn++;
 				}
 			} else {
-				System.out.println(player2Walls.size());
 				valid &= player2Walls.size() < 10;
 				if (valid) {
-					player2Walls.add(new Wall(move));
+					player2Walls.add(wall);
+					if (wall.getOrientation() == Orientation.HORIZONTAL) {
+						wallLookup.put(new Square((wall.getNorthWest().getRow()+1)<<1,((wall.getNorthWest().getColumn()+1)<<1)+1), wall.getOrientation());
+						wallLookup.put(new Square((wall.getNorthWest().getRow()+1)<<1,((wall.getNorthWest().getColumn()+1)<<1)-1), wall.getOrientation());
+					} else {
+						wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)+1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
+						wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)-1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
+					}
 					turn++;
 				}
 			}
@@ -77,15 +95,19 @@ public class GameState {
 		}
 		return valid;
 	}
-	
+
+	protected boolean isValidSyntax (String move) {
+		return false;
+	}
+
 	protected boolean isWallPlacement (String move) {
 		return move.length() == 3;
 	}
-	
+
 	protected boolean isTraversal (String move) {
 		return move.length() == 2;
 	}
-	
+
 	/**
 	 * <b>General Movement:</b>
 	 * A pawn can move to a square directly adjacent to itself, provided
@@ -234,5 +256,71 @@ public class GameState {
 		adjacencyList.get(b).remove(a);
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("   ");
+		for (char c = 'a' ; c < 'j' ; c++)
+			sb.append(c+"   ");
+		sb.append("\n");
+		for (int i = 0 ; i < 2*BOARD_SIZE+1 ; i++) {
+			for (int j = 0 ; j < 2*BOARD_SIZE+1 ; j++) {
+				if (j == 0) {		
+					if (i%2==0)
+						sb.append(" ");
+					else
+						sb.append((i+1)>>1);
+				}
+				sb.append (print (i,j));
+			}
+		}
+		return sb.toString();
+	}
+	
+	private boolean hasPlayer (int i, int j) {
+		// TODO Should restrict return values to be injective. (The rounding down of division could is potentially problematic).  
+		Square transformedPosition = new Square((i-1)>>1,(j-1)>>1);
+		return player1Square.equals(transformedPosition) || player2Square.equals(transformedPosition);
+	}
+
+	private boolean hasWall (int i, int j) {
+		return wallLookup.containsKey(new Square(i, j));
+	}
+	
+	private char player (int i, int j) {
+		Square transformedPosition = new Square((i-1)>>1,(j-1)>>1);
+		return player1Square.equals(transformedPosition) ? PLAYER_1_ICON : PLAYER_2_ICON;
+	}
+
+	// TODO Kind of a first world problem, but could make use of Java's unicode support to render a more aesthetic board.
+	private String print (int i, int j) {
+		StringBuilder sb = new StringBuilder();
+		if ((i+j)%2 == 0) {
+			if (j%2 == 0) {
+				sb.append ("+");
+			} else {
+				if (hasPlayer(i,j))
+					sb.append (" "+player(i,j)+" ");
+				else
+					sb.append ("   ");	
+			}
+		} else {
+			if (i%2 == 0) {
+				if (hasWall(i,j))
+					sb.append ("###");
+				else
+					sb.append ("---");
+			} else {
+				if (hasWall(i,j))
+					sb.append ("#");
+				else
+					sb.append ("|");		
+			}
+
+		}
+		if (j == 2*BOARD_SIZE) 
+			sb.append ("\n");
+		return sb.toString();
+	}
 
 }

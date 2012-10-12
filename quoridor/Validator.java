@@ -20,6 +20,7 @@ public class Validator {
 		boolean valid = true;
 		Iterator<String> itr = moves.iterator();
 		while (valid && itr.hasNext()) {
+			System.out.println(gs);
 			valid &= gs.move(itr.next());
 		}
 		return valid;
