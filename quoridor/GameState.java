@@ -15,8 +15,7 @@ public class GameState {
 	 * A hash table is used to associate each vertex with a doubly linked list of adjacent vertices
 	 */
 	protected HashMap <Square,LinkedList<Square>> adjacencyList = new HashMap <Square,LinkedList<Square>> ();
-	private HashMap <Square,Orientation> wallLookup = new HashMap<Square,Orientation>();
-	List <String> moves = new LinkedList<String>();
+	protected HashMap <Square,Orientation> wallLookup = new HashMap<Square,Orientation>();
 	Square player1Square = new Square("e9");
 	Square player2Square = new Square("e1");
 	LinkedList <Wall> player1Walls = new LinkedList<Wall>();
@@ -25,14 +24,14 @@ public class GameState {
 
 	public GameState() {
 		// Initialize adjacency list
-		for (int i = 0; i < Board.BOARD_SIZE; i++) {
-			for (int j = 0; j < Board.BOARD_SIZE; j++) {
+		for (int i = 0; i < BOARD_SIZE; i++) {
+			for (int j = 0; j < BOARD_SIZE; j++) {
 				LinkedList<Square> adjacent = new LinkedList<Square>();
 				for (int d = -1; d < 2; d++) {
 					if (d != 0) { // Vertices are not self-connecting
-						if (i+d >= 0 && i+d < Board.BOARD_SIZE)
+						if (i+d >= 0 && i+d < BOARD_SIZE)
 							adjacent.add(new Square(i+d,j));
-						if (j+d >= 0 && j+d < Board.BOARD_SIZE)
+						if (j+d >= 0 && j+d < BOARD_SIZE)
 							adjacent.add(new Square(i,j+d));
 					}
 				}
@@ -55,9 +54,13 @@ public class GameState {
 				if (valid) {
 					player1Walls.add(wall);
 					if (wall.getOrientation() == Orientation.HORIZONTAL) {
+						removeEdge(wall.northWest, wall.northWest.neighbor(1, 0));
+						removeEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
 						wallLookup.put(new Square((wall.getNorthWest().getRow()+1)<<1,((wall.getNorthWest().getColumn()+1)<<1)+1), wall.getOrientation());
 						wallLookup.put(new Square((wall.getNorthWest().getRow()+1)<<1,((wall.getNorthWest().getColumn()+1)<<1)-1), wall.getOrientation());
 					} else {
+						removeEdge(wall.northWest, wall.northWest.neighbor(0, 1));
+						removeEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
 						wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)+1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
 						wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)-1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
 					}
@@ -68,9 +71,13 @@ public class GameState {
 				if (valid) {
 					player2Walls.add(wall);
 					if (wall.getOrientation() == Orientation.HORIZONTAL) {
+						removeEdge(wall.northWest, wall.northWest.neighbor(1, 0));
+						removeEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
 						wallLookup.put(new Square((wall.getNorthWest().getRow()+1)<<1,((wall.getNorthWest().getColumn()+1)<<1)+1), wall.getOrientation());
 						wallLookup.put(new Square((wall.getNorthWest().getRow()+1)<<1,((wall.getNorthWest().getColumn()+1)<<1)-1), wall.getOrientation());
 					} else {
+						removeEdge(wall.northWest, wall.northWest.neighbor(0, 1));
+						removeEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
 						wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)+1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
 						wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)-1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
 					}
@@ -111,10 +118,19 @@ public class GameState {
 		return turn;
 	}
 	
-	public Integer playerToMove () {
+	
+	/**
+	 * The player who's turn it is.
+	 * @return 0 if player 1, 1 if player 2.
+	 */
+	public Integer currentPlayer () {
 		return turn%2;
 	}
 
+	public Square currentPlayerPosition () {
+		return currentPlayer () == 0 ? player1Square : player2Square;
+	}
+	
 	/**
 	 * <b>General Movement:</b>
 	 * A pawn can move to a square directly adjacent to itself, provided
@@ -203,7 +219,7 @@ public class GameState {
 	public boolean hasPathToGoal () {
 		boolean player1HasPath = false;
 		boolean player2HasPath = false;
-		for (int i = 0; i < Board.BOARD_SIZE; i++) {
+		for (int i = 0; i < BOARD_SIZE; i++) {
 			if (!player1HasPath)
 				player1HasPath |= hasPath(player1Square, new Square(0,i));
 			if (!player2HasPath)
@@ -248,7 +264,13 @@ public class GameState {
 		// by the placement of a wall, undo it, otherwise
 		// store the new wall in the list of walls
 		if (hasPathToGoal()) {
-			//walls.add(wall);
+			if (wall.orientation==Orientation.HORIZONTAL) {
+				addEdge(wall.northWest, wall.northWest.neighbor(1, 0));
+				addEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
+			} else {
+				addEdge(wall.northWest, wall.northWest.neighbor(0, 1));
+				addEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
+			}
 			return true;
 		} else {
 			if (wall.orientation==Orientation.HORIZONTAL) {
@@ -278,7 +300,8 @@ public class GameState {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Turn: "+turn+" | Player to Move: "+playerToMove()+"\n");
+		sb.append("Turn: "+turn+" | Player to Move: "+currentPlayer()+"\n");
+		sb.append("Valid Moves: "+validMoves()+"\n");
 		sb.append("   ");
 		for (char c = 'a' ; c < 'j' ; c++)
 			sb.append(c+"   ");
@@ -347,5 +370,29 @@ public class GameState {
 		
 		return 0;
 	}
-
+	
+	public List<String> validMoves() {
+		List<String> validMoves = new LinkedList<String>();
+		if (currentPlayer() == 0) {
+			for (Square s:adjacencyList.get(player1Square)) {
+				validMoves.add(s.toString());
+			}
+		} else {
+			for (Square s:adjacencyList.get(player2Square)) {
+				validMoves.add(s.toString());
+			}	
+		}
+		for (int i = 0; i < BOARD_SIZE ; i++) {
+			for (int j = 0; j < BOARD_SIZE; j++) {
+				for (Orientation o: Orientation.values()) {
+					Wall wall = new Wall(new Square(i, j), o);
+					if (isValidWallPlacement(wall)) {
+						validMoves.add(wall.toString());
+					}
+				}
+			}
+		}
+		return validMoves;
+	}
+	
 }

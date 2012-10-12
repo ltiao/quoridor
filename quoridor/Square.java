@@ -46,8 +46,8 @@ public class Square {
     	char column = 'a';
     	row += this.row;
     	column += this.column;
-    	return "[" + column + row +  "]";
-	}
+    	return ""+column+row;
+    }
 
 	@Override
 	public boolean equals(Object obj) {

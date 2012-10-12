@@ -2,6 +2,11 @@ package quoridor;
 
 public class Wall {
 
+	@Override
+	public String toString() {
+		return northWest.toString() + orientation.name().toLowerCase().charAt(0);
+	}
+
 	Square northWest = new Square ();
 	Orientation orientation = null; 
 
