@@ -20,6 +20,7 @@ public class UserInterface {
 				System.out.println("Invalid move");
 			}
 		}
+		System.out.println("Game Over!");
 	}
 
 }

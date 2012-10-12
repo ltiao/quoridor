@@ -373,19 +373,14 @@ public class GameState {
 	
 	public List<String> validMoves() {
 		List<String> validMoves = new LinkedList<String>();
-		if (currentPlayer() == 0) {
-			for (Square s:adjacencyList.get(player1Square)) {
-				validMoves.add(s.toString());
-			}
-		} else {
-			for (Square s:adjacencyList.get(player2Square)) {
-				validMoves.add(s.toString());
-			}	
-		}
 		for (int i = 0; i < BOARD_SIZE ; i++) {
 			for (int j = 0; j < BOARD_SIZE; j++) {
+				Square sq = new Square(i,j);
+				if (isValidTraversal(currentPlayerPosition(), sq)) {
+					validMoves.add(sq.toString());
+				}
 				for (Orientation o: Orientation.values()) {
-					Wall wall = new Wall(new Square(i, j), o);
+					Wall wall = new Wall(sq, o);
 					if (isValidWallPlacement(wall)) {
 						validMoves.add(wall.toString());
 					}
