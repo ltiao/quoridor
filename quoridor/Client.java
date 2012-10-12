@@ -1,5 +1,6 @@
 package quoridor;
 
+import java.io.*;
 import java.util.LinkedList;
 import java.util.Scanner;
 
@@ -8,6 +9,36 @@ public class Client {
 	/**
 	 * @param args
 	 */
+	
+	public static void main(String[] args) {
+		String menu = "********MENU********\n***Options***\n1:Human vs Human\t2:Human vs AI";
+		System.out.print(menu);
+		Boolean validInput = false;
+		while (!validInput) { 
+			String command = null;
+			Scanner in = new Scanner(System.in);
+			command = in.nextLine();
+			if (command.equals("1")) {
+				validInput = true;
+				
+				Player yamum = new HumanPlayer();
+				while (!gs.isOver()) {
+					String move = yamum.getMove(gs);
+					gs.move(move);
+				}
+			}
+			else if (command.equals("2")) {
+				validInput = true;
+				//run human vs ai
+			}
+			else {
+				System.out.print("Invalid selection\nInput selection:");
+			}
+		}
+		
+	}
+	
+	/*
 	public static void main(String[] args) {
 		Display board = new Board();
 		StringBuilder sb = new StringBuilder();
@@ -29,6 +60,6 @@ public class Client {
 			}
 			i++;
 		}
-	}
+	}*/
 
 }

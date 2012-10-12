@@ -1,5 +1,5 @@
 package quoridor;
 
 public interface Player {
-	public String getMove();
+	public String getMove(GameState gs);
 }
