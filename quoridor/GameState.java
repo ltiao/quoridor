@@ -20,8 +20,8 @@ public class GameState {
 	List <String> moves = new LinkedList<String>();
 	Square player1Square = new Square("e9");
 	Square player2Square = new Square("e1");
-	LinkedList <Wall> player2Walls = new LinkedList<Wall>();
 	LinkedList <Wall> player1Walls = new LinkedList<Wall>();
+	LinkedList <Wall> player2Walls = new LinkedList<Wall>();
 	Integer turn = 0;
 
 	public GameState() {
@@ -106,6 +106,14 @@ public class GameState {
 
 	protected boolean isTraversal (String move) {
 		return move.length() == 2;
+	}
+	
+	public Integer turn () {
+		return turn;
+	}
+	
+	public Integer playerToMove () {
+		return turn%2;
 	}
 
 	/**
@@ -259,6 +267,7 @@ public class GameState {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
+		sb.append("Turn: "+turn+" | Player to Move: "+playerToMove()+"\n");
 		sb.append("   ");
 		for (char c = 'a' ; c < 'j' ; c++)
 			sb.append(c+"   ");
