@@ -19,12 +19,9 @@ public class UserInterface {
 			command = in.nextLine();
 			if (command.equals("1")) {
 				validInput = true;
-				player1 = new HumanPlayer();
-				player2 = new HumanPlayer();
 			}
 			else if (command.equals("2")) {
 				validInput = true;
-				player1 = new HumanPlayer();
 				player2 = new AIPlayer();
 			}
 			else {
