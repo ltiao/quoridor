@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.StringTokenizer;
 
 public class GameState {
 	static final int BOARD_SIZE = 9;
@@ -237,7 +236,6 @@ public class GameState {
 
 		// If the wall does not intersect existing walls, proceed to update the graph
 		// to remove associated edges
-		HashMap <Square, LinkedList<Square>> backup = new HashMap<Square, LinkedList<Square>>(adjacencyList);
 		if (wall.orientation==Orientation.HORIZONTAL) {
 			removeEdge(wall.northWest, wall.northWest.neighbor(1, 0));
 			removeEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
@@ -253,7 +251,13 @@ public class GameState {
 			//walls.add(wall);
 			return true;
 		} else {
-			adjacencyList = backup;
+			if (wall.orientation==Orientation.HORIZONTAL) {
+				addEdge(wall.northWest, wall.northWest.neighbor(1, 0));
+				addEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
+			} else {
+				addEdge(wall.northWest, wall.northWest.neighbor(0, 1));
+				addEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
+			}
 			return false;
 		}
 	}
@@ -263,6 +267,13 @@ public class GameState {
 		adjacencyList.get(a).remove(b);
 		adjacencyList.get(b).remove(a);
 	}
+	
+	// Need to check preconditions
+	public void addEdge (Square a, Square b) {
+		adjacencyList.get(a).add(b);
+		adjacencyList.get(b).add(a);
+	}
+
 
 	@Override
 	public String toString() {
@@ -330,6 +341,11 @@ public class GameState {
 		if (j == 2*BOARD_SIZE) 
 			sb.append ("\n");
 		return sb.toString();
+	}
+	
+	public Integer score () {
+		
+		return 0;
 	}
 
 }
