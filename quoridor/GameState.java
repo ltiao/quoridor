@@ -40,6 +40,41 @@ public class GameState {
 		}
 	}
 
+	public GameState(List <String> moves) {
+		// Initialize adjacency list
+		for (int i = 0; i < BOARD_SIZE; i++) {
+			for (int j = 0; j < BOARD_SIZE; j++) {
+				LinkedList<Square> adjacent = new LinkedList<Square>();
+				for (int d = -1; d < 2; d++) {
+					if (d != 0) { // Vertices are not self-connecting
+						if (i+d >= 0 && i+d < BOARD_SIZE)
+							adjacent.add(new Square(i+d,j));
+						if (j+d >= 0 && j+d < BOARD_SIZE)
+							adjacent.add(new Square(i,j+d));
+					}
+				}
+				adjacencyList.put(new Square(i,j), adjacent);
+			}
+		}
+		for (String e:moves) {
+			move(e);
+		}
+	}
+	
+	public GameState(GameState gs) {
+		for (Square sq:gs.adjacencyList.keySet()) {
+			LinkedList<Square> list = new LinkedList<Square>();
+			list.addAll(gs.adjacencyList.get(sq));
+			adjacencyList.put(sq, list);
+		}
+		wallLookup = new HashMap<Square,Orientation>(gs.wallLookup);
+		player1Square = new Square(gs.player1Square);
+		player2Square = new Square(gs.player2Square);
+		player1Walls.addAll(gs.player1Walls);
+		player2Walls.addAll(gs.player2Walls);
+		turn = gs.turn;
+	}
+	
 	/**
 	 * Mutator method for mutating game state. Return false if invalid move.
 	 * @param move
@@ -175,6 +210,34 @@ public class GameState {
 		}
 	}
 
+	protected List<Square> shortestPath (Square src, int row) {
+		List<Square> path = new LinkedList<Square>();
+		Queue <Square> queue = new LinkedList<Square>();
+		HashMap <Square,Square> parentNode = new HashMap<Square,Square>();
+		// enqueue start configuration onto queue
+		queue.add(src);
+		// mark start configuration
+		parentNode.put(src, null);
+		while (!queue.isEmpty()) {
+			Square t = queue.poll();
+			if (t.getRow() == row) {
+				while (!t.equals(src)) {
+					path.add(t);
+					t = parentNode.get(t);
+				}
+				Collections.reverse(path);
+				return path;
+			}
+			for (Square e: adjacencyList.get(t)) {
+				if (!parentNode.containsKey(e)) {
+					parentNode.put(e, t);
+					queue.add(e);
+				}
+			}
+		}
+		return path;
+	}
+	
 	protected List<Square> shortestPath (Square src, Square dest) {
 		List<Square> path = new LinkedList<Square>();
 		Queue <Square> queue = new LinkedList<Square>();
@@ -366,9 +429,14 @@ public class GameState {
 		return sb.toString();
 	}
 	
-	public Integer score () {
-		
-		return 0;
+	public int heuristic() {
+		List <Square> path = new LinkedList <Square>();
+		if (currentPlayer() == 0) {
+			path = shortestPath(currentPlayerPosition(), currentPlayerPosition().getRow()+1);
+		} else {
+			path = shortestPath(currentPlayerPosition(), currentPlayerPosition().getRow()-1);
+		}
+		return path.size();
 	}
 	
 	public List<String> validMoves() {
@@ -389,5 +457,5 @@ public class GameState {
 		}
 		return validMoves;
 	}
-	
+
 }

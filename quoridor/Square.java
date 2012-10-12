@@ -26,6 +26,11 @@ public class Square {
         }
     }
 
+    public Square(Square sq) {
+    	this.row = sq.getRow();
+    	this.column = sq.getColumn();
+    }
+    
     public int getRow() {
         return row;
     }
