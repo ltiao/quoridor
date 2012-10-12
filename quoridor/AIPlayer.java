@@ -7,7 +7,8 @@ public class AIPlayer implements Player {
 	@Override
 	public String getMove(GameState gs) {
 		List<String> validMoves = gs.validMoves();
-		System.out.println(validMoves);
+		//System.out.println(validMoves);
+		System.out.println(minimax (gs, 3));
 		return validMoves.get((int)(Math.random() * (validMoves.size() + 1)));
 	}
 

@@ -99,7 +99,6 @@ public class GameState {
 						wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)+1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
 						wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)-1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
 					}
-					turn++;
 				}
 			} else {
 				valid &= player2Walls.size() < 10;
@@ -116,7 +115,6 @@ public class GameState {
 						wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)+1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
 						wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)-1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
 					}
-					turn++;
 				}
 			}
 		} else {
@@ -124,15 +122,16 @@ public class GameState {
 				valid = isValidTraversal(player1Square, new Square(move));
 				if (valid) {
 					player1Square = new Square (move);
-					turn++;
 				}
 			} else {
 				valid = isValidTraversal(player2Square, new Square(move));
 				if (valid) {
 					player2Square = new Square (move);
-					turn++;
 				}
 			}
+		}
+		if (valid) {
+			turn++;
 		}
 		return valid;
 	}
