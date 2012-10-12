@@ -152,10 +152,7 @@ public class ProvidedTests
     {
         moves = asList ("e8", "e2", "e7", "e3", "e6", "e4", "e5", "e2h");
         goodMove = "e3";
-        // This is in actual fact a valid move!
-        //badMove = "f4";
-        // Let's instead try some invalid jump
-        badMove = "f3";
+        badMove = "f4";
         checkValid ();
     }
 
