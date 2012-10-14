@@ -156,6 +156,10 @@ public class GameState {
 	
 	public boolean isValidWallPlacement (Wall wall) {
 
+		if (!(numWalls1 < 10 && numWalls2 < 10)) {
+			return false;
+		}
+		
 		// Check wall is not being placed at border
 		if (wall.northWest.getColumn()==8 || wall.northWest.getRow()==8) {
 			return false;
@@ -224,40 +228,8 @@ public class GameState {
 		if (isWallPlacement(move)) {
 			Wall wall = new Wall(move);
 			valid &= isValidWallPlacement(wall);
-			if (turn%2 == 0) {
-				valid &= numWalls1 < 10;
-				if (valid) {
-					numWalls1++;
-					walls.add(wall);
-					if (wall.getOrientation() == Orientation.HORIZONTAL) {
-						removeEdge(wall.northWest, wall.northWest.neighbor(1, 0));
-						removeEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
-						wallLookup.put(new Square((wall.getNorthWest().getRow()+1)<<1,((wall.getNorthWest().getColumn()+1)<<1)+1), wall.getOrientation());
-						wallLookup.put(new Square((wall.getNorthWest().getRow()+1)<<1,((wall.getNorthWest().getColumn()+1)<<1)-1), wall.getOrientation());
-					} else {
-						removeEdge(wall.northWest, wall.northWest.neighbor(0, 1));
-						removeEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
-						wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)+1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
-						wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)-1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
-					}
-				}
-			} else {
-				valid &= numWalls2 < 10;
-				if (valid) {
-					numWalls2++;
-					walls.add(wall);
-					if (wall.getOrientation() == Orientation.HORIZONTAL) {
-						removeEdge(wall.northWest, wall.northWest.neighbor(1, 0));
-						removeEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
-						wallLookup.put(new Square((wall.getNorthWest().getRow()+1)<<1,((wall.getNorthWest().getColumn()+1)<<1)+1), wall.getOrientation());
-						wallLookup.put(new Square((wall.getNorthWest().getRow()+1)<<1,((wall.getNorthWest().getColumn()+1)<<1)-1), wall.getOrientation());
-					} else {
-						removeEdge(wall.northWest, wall.northWest.neighbor(0, 1));
-						removeEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
-						wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)+1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
-						wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)-1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
-					}
-				}
+			if (valid) {
+				placeWall(wall);
 			}
 		} else {
 			Square sq = new Square(move);
@@ -276,6 +248,30 @@ public class GameState {
 			turn++;
 		}
 		return valid;
+	}
+	
+	public void traverse() {
+		
+	}
+	
+	public void placeWall(Wall wall) {
+		if (currentPlayer()==0) {
+			numWalls1++;
+		} else {
+			numWalls2++;
+		}
+		walls.add(wall);
+		if (wall.getOrientation() == Orientation.HORIZONTAL) {
+			removeEdge(wall.northWest, wall.northWest.neighbor(1, 0));
+			removeEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
+			wallLookup.put(new Square((wall.getNorthWest().getRow()+1)<<1,((wall.getNorthWest().getColumn()+1)<<1)+1), wall.getOrientation());
+			wallLookup.put(new Square((wall.getNorthWest().getRow()+1)<<1,((wall.getNorthWest().getColumn()+1)<<1)-1), wall.getOrientation());
+		} else {
+			removeEdge(wall.northWest, wall.northWest.neighbor(0, 1));
+			removeEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
+			wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)+1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
+			wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)-1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
+		}
 	}
 	
 	private char player (int i, int j) {
