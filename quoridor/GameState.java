@@ -15,6 +15,7 @@ public class GameState {
 	 * A hash table is used to associate each vertex with a doubly linked list of adjacent vertices
 	 */
 	protected HashMap <Square,LinkedList<Square>> adjacencyList = new HashMap <Square,LinkedList<Square>> ();
+	// This is used for printing. Could be done away with with a little thought.
 	protected HashMap <Square,Orientation> wallLookup = new HashMap<Square,Orientation>();
 	Square player1Square = new Square("e9");
 	Square player2Square = new Square("e1");
@@ -55,21 +56,7 @@ public class GameState {
 	}
 	
 	public GameState(List <String> moves) {
-		// Initialize adjacency list
-		for (int i = 0; i < BOARD_SIZE; i++) {
-			for (int j = 0; j < BOARD_SIZE; j++) {
-				LinkedList<Square> adjacent = new LinkedList<Square>();
-				for (int d = -1; d < 2; d++) {
-					if (d != 0) { // Vertices are not self-connecting
-						if (i+d >= 0 && i+d < BOARD_SIZE)
-							adjacent.add(new Square(i+d,j));
-						if (j+d >= 0 && j+d < BOARD_SIZE)
-							adjacent.add(new Square(i,j+d));
-					}
-				}
-				adjacencyList.put(new Square(i,j), adjacent);
-			}
-		}
+		new GameState();
 		for (String e:moves) {
 			move(e);
 		}
@@ -111,7 +98,6 @@ public class GameState {
 	public int distance (Square src, Square dest) {
 		return shortestPath (src, dest).size ();
 	}
-	
 	
 	@Override
 	public boolean equals(Object obj) {
@@ -213,6 +199,7 @@ public class GameState {
 	}
 
 	/**
+	 * Terminal Test
 	 * @return true if any player has reached the other side
 	 */
 	public boolean isOver() {
@@ -220,51 +207,19 @@ public class GameState {
 	}
 
 	protected boolean isTraversal (String move) {
-		return move.length() == 2;
+		return isValidSyntax(move) && move.length() == 2;
 	}
 
 	protected boolean isValidSyntax (String move) {
-		return false;
-	}
-
-	/**
-	 * <b>General Movement:</b>
-	 * A pawn can move to a square directly adjacent to itself, provided
-	 * it is not obstructed by a wall or pawn. See below.
-	 * <br/>
-	 * <b>Wall obstruction:</b>
-	 * Say the current square has coordinate (x, y).
-	 * The only walls that can possibly obstruct the
-	 * pawn are those at (x, y), (x, y-1), (x-1, y) and (x-1, y-1).
-	 * <br/>
-	 * <b>Pawn obstruction:</b>
-	 * When a pawn, say B is on a square directly adjacent to pawn A,
-	 * then pawn A can move to any square directly adjacent to pawn B,
-	 * and vice versa.
-	 *
-	 * @param a
-	 * @param b
-	 * @return
-	 */
-	public boolean isValidTraversal (Square a, Square b) {
-		// if the destination is occupied by any player
-		if (b.equals(player1Square) || b.equals(player2Square)) {
-			return false;
-		}
-		// if the current position is adjacent to any other player's current position
-		//if (adjacencyList.get(a).contains(player1Square) || adjacencyList.get(a).contains(player2Square)) {
-			//return adjacencyList.get(player1Square).contains(b) || adjacencyList.get(player2Square).contains(b);
-		//} else 
-		if (adjacencyList.get(a).contains(b)) {
-			return true;
-		} else {
-			
-		}
-		return false;
+		return true;
+		/*
+		Pattern p = Pattern.compile("[a-i][0-9][hv]?");
+		Matcher m = p.matcher(move);
+		return m.matches();
+		*/
 	}
 
 	public boolean isValidTraversal (Square dest) {
-		// if the destination is occupied by any player
 		if (dest.equals(currentPlayerPosition()) || dest.equals(otherPlayerPosition())) {
 			return false;
 		} else if (adjacencyList.get(currentPlayerPosition()).contains(dest)) {
@@ -336,7 +291,7 @@ public class GameState {
 	}
 	
 	protected boolean isWallPlacement (String move) {
-		return move.length() == 3;
+		return isValidSyntax(move) && move.length() == 3;
 	}
 
 
@@ -533,7 +488,7 @@ public class GameState {
 		for (int i = 0; i < BOARD_SIZE ; i++) {
 			for (int j = 0; j < BOARD_SIZE; j++) {
 				Square sq = new Square(i,j);
-				if (isValidTraversal(currentPlayerPosition(), sq)) {
+				if (isValidTraversal(sq)) {
 					validMoves.add(sq.toString());
 				}
 /*				for (Orientation o: Orientation.values()) {
