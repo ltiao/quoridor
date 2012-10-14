@@ -67,5 +67,14 @@ public class Square {
 	public int hashCode() {
 		return 9*row+column;
 	}
+	
+	public boolean isCardinalTo(Square sq) {
+		return (row - sq.row != 0) ^ (column - sq.column != 0);
+	}
+	
+	public Square opposite(Square sq) {
+		return new Square(2*sq.row - row, 2*sq.column - column);
+	}
+    
     
 }

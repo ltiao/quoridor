@@ -40,6 +40,20 @@ public class GameState {
 		}
 	}
 
+	public GameState(GameState gs) {
+		for (Square sq:gs.adjacencyList.keySet()) {
+			LinkedList<Square> list = new LinkedList<Square>();
+			list.addAll(gs.adjacencyList.get(sq));
+			adjacencyList.put(sq, list);
+		}
+		wallLookup = new HashMap<Square,Orientation>(gs.wallLookup);
+		player1Square = new Square(gs.player1Square);
+		player2Square = new Square(gs.player2Square);
+		player1Walls.addAll(gs.player1Walls);
+		player2Walls.addAll(gs.player2Walls);
+		turn = gs.turn;
+	}
+	
 	public GameState(List <String> moves) {
 		// Initialize adjacency list
 		for (int i = 0; i < BOARD_SIZE; i++) {
@@ -61,20 +75,271 @@ public class GameState {
 		}
 	}
 	
-	public GameState(GameState gs) {
-		for (Square sq:gs.adjacencyList.keySet()) {
-			LinkedList<Square> list = new LinkedList<Square>();
-			list.addAll(gs.adjacencyList.get(sq));
-			adjacencyList.put(sq, list);
-		}
-		wallLookup = new HashMap<Square,Orientation>(gs.wallLookup);
-		player1Square = new Square(gs.player1Square);
-		player2Square = new Square(gs.player2Square);
-		player1Walls.addAll(gs.player1Walls);
-		player2Walls.addAll(gs.player2Walls);
-		turn = gs.turn;
+	// Need to check preconditions
+	public void addEdge (Square a, Square b) {
+		adjacencyList.get(a).add(b);
+		adjacencyList.get(b).add(a);
+	}
+
+	/**
+	 * The player who's turn it is.
+	 * @return 0 if player 1, 1 if player 2.
+	 */
+	public Integer currentPlayer () {
+		return turn%2;
+	}
+
+	public Square currentPlayerPosition () {
+		return currentPlayer () == 0 ? player1Square : player2Square;
 	}
 	
+	public Square otherPlayerPosition () {
+		return currentPlayerPosition().equals(player1Square) ? player2Square : player1Square;
+	}
+
+	protected void displayAdjacencyList () {
+		for (Square e:adjacencyList.keySet()) {
+			System.out.println(e+": "+adjacencyList.get(e));
+		}
+	}
+	
+	/**
+	 * @param src
+	 * @param dest
+	 * @return 0 if no path exists
+	 */
+	public int distance (Square src, Square dest) {
+		return shortestPath (src, dest).size ();
+	}
+	
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		GameState other = (GameState) obj;
+		if (adjacencyList == null) {
+			if (other.adjacencyList != null)
+				return false;
+		} else if (!adjacencyList.equals(other.adjacencyList))
+			return false;
+		if (player1Square == null) {
+			if (other.player1Square != null)
+				return false;
+		} else if (!player1Square.equals(other.player1Square))
+			return false;
+		if (player1Walls == null) {
+			if (other.player1Walls != null)
+				return false;
+		} else if (!player1Walls.equals(other.player1Walls))
+			return false;
+		if (player2Square == null) {
+			if (other.player2Square != null)
+				return false;
+		} else if (!player2Square.equals(other.player2Square))
+			return false;
+		if (player2Walls == null) {
+			if (other.player2Walls != null)
+				return false;
+		} else if (!player2Walls.equals(other.player2Walls))
+			return false;
+		if (turn == null) {
+			if (other.turn != null)
+				return false;
+		} else if (!turn.equals(other.turn))
+			return false;
+		if (wallLookup == null) {
+			if (other.wallLookup != null)
+				return false;
+		} else if (!wallLookup.equals(other.wallLookup))
+			return false;
+		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((adjacencyList == null) ? 0 : adjacencyList.hashCode());
+		result = prime * result
+				+ ((player1Square == null) ? 0 : player1Square.hashCode());
+		result = prime * result
+				+ ((player1Walls == null) ? 0 : player1Walls.hashCode());
+		result = prime * result
+				+ ((player2Square == null) ? 0 : player2Square.hashCode());
+		result = prime * result
+				+ ((player2Walls == null) ? 0 : player2Walls.hashCode());
+		result = prime * result + ((turn == null) ? 0 : turn.hashCode());
+		result = prime * result
+				+ ((wallLookup == null) ? 0 : wallLookup.hashCode());
+		return result;
+	}
+	
+	public boolean hasPath (Square src, Square dest) {
+		return distance (src, dest) > 0;
+	}
+
+	public boolean hasPathToGoal () {
+		return !(shortestPath(player1Square, 0).isEmpty() || shortestPath(player2Square, 8).isEmpty());
+	}
+
+	private boolean hasPlayer (int i, int j) {
+		// TODO Should restrict return values to be injective. (The rounding down of division could is potentially problematic).  
+		Square transformedPosition = new Square((i-1)>>1,(j-1)>>1);
+		return player1Square.equals(transformedPosition) || player2Square.equals(transformedPosition);
+	}
+
+	private boolean hasWall (int i, int j) {
+		return wallLookup.containsKey(new Square(i, j));
+	}
+	
+	public int heuristic() {
+		int score = 0;
+		if (currentPlayer() == 0) {
+			//path = shortestPath(currentPlayerPosition(), currentPlayerPosition().getRow()-1);
+			score = shortestPath(currentPlayerPosition(), 0).size()-shortestPath(otherPlayerPosition(), 8).size();
+			//rows = currentPlayerPosition().getRow();
+		} else {
+			//path = shortestPath(currentPlayerPosition(), currentPlayerPosition().getRow()+1);
+			score = shortestPath(otherPlayerPosition(), 8).size()-shortestPath(currentPlayerPosition(), 0).size();
+			//rows = 8-currentPlayerPosition().getRow();
+		}
+		return score;
+	}
+
+	/**
+	 * @return true if any player has reached the other side
+	 */
+	public boolean isOver() {
+		return player1Square.getRow() == 0 || player2Square.getRow() == 8;
+	}
+
+	protected boolean isTraversal (String move) {
+		return move.length() == 2;
+	}
+
+	protected boolean isValidSyntax (String move) {
+		return false;
+	}
+
+	/**
+	 * <b>General Movement:</b>
+	 * A pawn can move to a square directly adjacent to itself, provided
+	 * it is not obstructed by a wall or pawn. See below.
+	 * <br/>
+	 * <b>Wall obstruction:</b>
+	 * Say the current square has coordinate (x, y).
+	 * The only walls that can possibly obstruct the
+	 * pawn are those at (x, y), (x, y-1), (x-1, y) and (x-1, y-1).
+	 * <br/>
+	 * <b>Pawn obstruction:</b>
+	 * When a pawn, say B is on a square directly adjacent to pawn A,
+	 * then pawn A can move to any square directly adjacent to pawn B,
+	 * and vice versa.
+	 *
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	public boolean isValidTraversal (Square a, Square b) {
+		// if the destination is occupied by any player
+		if (b.equals(player1Square) || b.equals(player2Square)) {
+			return false;
+		}
+		// if the current position is adjacent to any other player's current position
+		//if (adjacencyList.get(a).contains(player1Square) || adjacencyList.get(a).contains(player2Square)) {
+			//return adjacencyList.get(player1Square).contains(b) || adjacencyList.get(player2Square).contains(b);
+		//} else 
+		if (adjacencyList.get(a).contains(b)) {
+			return true;
+		} else {
+			
+		}
+		return false;
+	}
+
+	public boolean isValidTraversal (Square dest) {
+		// if the destination is occupied by any player
+		if (dest.equals(currentPlayerPosition()) || dest.equals(otherPlayerPosition())) {
+			return false;
+		} else if (adjacencyList.get(currentPlayerPosition()).contains(dest)) {
+			return true;
+		} else if (adjacencyList.get(currentPlayerPosition()).contains(otherPlayerPosition())) {
+			if (adjacencyList.get(otherPlayerPosition()).contains(currentPlayerPosition().opposite(otherPlayerPosition()))) {
+				return adjacencyList.get(otherPlayerPosition()).contains(dest) && currentPlayerPosition().isCardinalTo(dest);
+			} else {
+				return adjacencyList.get(otherPlayerPosition()).contains(dest);
+			}
+		}
+		return false;
+	}
+	
+	public boolean isValidWallPlacement (Wall wall) {
+
+		LinkedList<Wall> walls = new LinkedList<Wall>();
+		walls.addAll(player1Walls);
+		walls.addAll(player2Walls);
+
+		// Check wall is not being placed at border
+		if (wall.northWest.getColumn()==8 || wall.northWest.getRow()==8) {
+			return false;
+		}
+
+		// Check wall is not intersecting existing wall
+		if (wall.orientation == Orientation.HORIZONTAL) {
+			if (walls.contains(wall) || walls.contains(wall.neighbor(0, 0, Orientation.VERTICAL)) || walls.contains(wall.neighbor(0, -1, Orientation.HORIZONTAL)) || walls.contains(wall.neighbor(0, 1, Orientation.HORIZONTAL))) {
+				return false;
+			}
+		} else {
+			if (walls.contains(wall) || walls.contains(wall.neighbor(0, 0, Orientation.HORIZONTAL)) || walls.contains(wall.neighbor(-1, 0, Orientation.VERTICAL)) || walls.contains(wall.neighbor(1, 0, Orientation.VERTICAL))) {
+				return false;
+			}
+		}
+
+		// If the wall does not intersect existing walls, proceed to update the graph
+		// to remove associated edges
+		if (wall.orientation==Orientation.HORIZONTAL) {
+			removeEdge(wall.northWest, wall.northWest.neighbor(1, 0));
+			removeEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
+		} else {
+			removeEdge(wall.northWest, wall.northWest.neighbor(0, 1));
+			removeEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
+		}
+
+		// If we remove paths to the goal for any player 
+		// by the placement of a wall, undo it, otherwise
+		// store the new wall in the list of walls
+		if (hasPathToGoal()) {
+			if (wall.orientation==Orientation.HORIZONTAL) {
+				addEdge(wall.northWest, wall.northWest.neighbor(1, 0));
+				addEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
+			} else {
+				addEdge(wall.northWest, wall.northWest.neighbor(0, 1));
+				addEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
+			}
+			return true;
+		} else {
+			if (wall.orientation==Orientation.HORIZONTAL) {
+				addEdge(wall.northWest, wall.northWest.neighbor(1, 0));
+				addEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
+			} else {
+				addEdge(wall.northWest, wall.northWest.neighbor(0, 1));
+				addEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
+			}
+			return false;
+		}
+	}
+	
+	protected boolean isWallPlacement (String move) {
+		return move.length() == 3;
+	}
+
+
 	/**
 	 * Mutator method for mutating game state. Return false if invalid move.
 	 * @param move
@@ -118,15 +383,15 @@ public class GameState {
 				}
 			}
 		} else {
+			Square sq = new Square(move);
+			valid = isValidTraversal(sq);
 			if (turn%2 == 0) {
-				valid = isValidTraversal(player1Square, new Square(move));
 				if (valid) {
-					player1Square = new Square (move);
+					player1Square = sq;
 				}
 			} else {
-				valid = isValidTraversal(player2Square, new Square(move));
 				if (valid) {
-					player2Square = new Square (move);
+					player2Square = sq;
 				}
 			}
 		}
@@ -135,78 +400,47 @@ public class GameState {
 		}
 		return valid;
 	}
-
-	protected boolean isValidSyntax (String move) {
-		return false;
-	}
-
-	protected boolean isWallPlacement (String move) {
-		return move.length() == 3;
+	
+	private char player (int i, int j) {
+		Square transformedPosition = new Square((i-1)>>1,(j-1)>>1);
+		return player1Square.equals(transformedPosition) ? PLAYER_1_ICON : PLAYER_2_ICON;
 	}
 
-	protected boolean isTraversal (String move) {
-		return move.length() == 2;
-	}
-	
-	public Integer turn () {
-		return turn;
-	}
-	
-	
-	/**
-	 * The player who's turn it is.
-	 * @return 0 if player 1, 1 if player 2.
-	 */
-	public Integer currentPlayer () {
-		return turn%2;
-	}
+	// TODO Kind of a first world problem, but could make use of Java's unicode support to render a more aesthetic board.
+	private String print (int i, int j) {
+		StringBuilder sb = new StringBuilder();
+		if ((i+j)%2 == 0) {
+			if (j%2 == 0) {
+				sb.append ("+");
+			} else {
+				if (hasPlayer(i,j))
+					sb.append (" "+player(i,j)+" ");
+				else
+					sb.append ("   ");	
+			}
+		} else {
+			if (i%2 == 0) {
+				if (hasWall(i,j))
+					sb.append ("###");
+				else
+					sb.append ("---");
+			} else {
+				if (hasWall(i,j))
+					sb.append ("#");
+				else
+					sb.append ("|");		
+			}
 
-	public Square currentPlayerPosition () {
-		return currentPlayer () == 0 ? player1Square : player2Square;
-	}
-	
-	/**
-	 * <b>General Movement:</b>
-	 * A pawn can move to a square directly adjacent to itself, provided
-	 * it is not obstructed by a wall or pawn. See below.
-	 * <br/>
-	 * <b>Wall obstruction:</b>
-	 * Say the current square has coordinate (x, y).
-	 * The only walls that can possibly obstruct the
-	 * pawn are those at (x, y), (x, y-1), (x-1, y) and (x-1, y-1).
-	 * <br/>
-	 * <b>Pawn obstruction:</b>
-	 * When a pawn, say B is on a square directly adjacent to pawn A,
-	 * then pawn A can move to any square directly adjacent to pawn B,
-	 * and vice versa.
-	 *
-	 * @param a
-	 * @param b
-	 * @return
-	 */
-	public boolean isValidTraversal (Square a, Square b) {
-		if (b.equals(player1Square) || b.equals(player2Square)) {
-			return false;
 		}
-		if (adjacencyList.get(a).contains(player1Square) || adjacencyList.get(a).contains(player2Square)) {
-			return adjacencyList.get(player1Square).contains(b) || adjacencyList.get(player2Square).contains(b);
-		} else if (adjacencyList.get(a).contains(b)) {
-			return true;
-		}
-		return false;
+		if (j == 2*BOARD_SIZE) 
+			sb.append ("\n");
+		return sb.toString();
 	}
-
-	/**
-	 * @return true if any player has reached the other side
-	 */
-	public boolean isOver() {
-		return player1Square.getRow() == 0 || player2Square.getRow() == 8;
-	}
-
-	protected void displayAdjacencyList () {
-		for (Square e:adjacencyList.keySet()) {
-			System.out.println(e+": "+adjacencyList.get(e));
-		}
+	
+	// Need to check preconditions
+	public void removeEdge (Square a, Square b) {
+		adjacencyList.get(a).remove(b);
+		adjacencyList.get(b).remove(a);
 	}
 
 	protected List<Square> shortestPath (Square src, int row) {
@@ -264,106 +498,14 @@ public class GameState {
 		}
 		return path;
 	}
-
-	/**
-	 * @param src
-	 * @param dest
-	 * @return 0 if no path exists
-	 */
-	public int distance (Square src, Square dest) {
-		return shortestPath (src, dest).size ();
-	}
-
-	public boolean hasPath (Square src, Square dest) {
-		return distance (src, dest) > 0;
-	}
-
-	public boolean hasPathToGoal () {
-		boolean player1HasPath = false;
-		boolean player2HasPath = false;
-		for (int i = 0; i < BOARD_SIZE; i++) {
-			if (!player1HasPath)
-				player1HasPath |= hasPath(player1Square, new Square(0,i));
-			if (!player2HasPath)
-				player2HasPath |= hasPath(player2Square, new Square(8,i));
-		}
-		return player1HasPath && player2HasPath;
-	}
-
-	public boolean isValidWallPlacement (Wall wall) {
-
-		LinkedList<Wall> walls = new LinkedList<Wall>();
-		walls.addAll(player1Walls);
-		walls.addAll(player2Walls);
-
-		// Check wall is not being placed at border
-		if (wall.northWest.getColumn()==8 || wall.northWest.getRow()==8) {
-			return false;
-		}
-
-		// Check wall is not intersecting existing wall
-		if (wall.orientation == Orientation.HORIZONTAL) {
-			if (walls.contains(wall) || walls.contains(wall.neighbor(0, 0, Orientation.VERTICAL)) || walls.contains(wall.neighbor(0, -1, Orientation.HORIZONTAL)) || walls.contains(wall.neighbor(0, 1, Orientation.HORIZONTAL))) {
-				return false;
-			}
-		} else {
-			if (walls.contains(wall) || walls.contains(wall.neighbor(0, 0, Orientation.HORIZONTAL)) || walls.contains(wall.neighbor(-1, 0, Orientation.VERTICAL)) || walls.contains(wall.neighbor(1, 0, Orientation.VERTICAL))) {
-				return false;
-			}
-		}
-
-		// If the wall does not intersect existing walls, proceed to update the graph
-		// to remove associated edges
-		if (wall.orientation==Orientation.HORIZONTAL) {
-			removeEdge(wall.northWest, wall.northWest.neighbor(1, 0));
-			removeEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
-		} else {
-			removeEdge(wall.northWest, wall.northWest.neighbor(0, 1));
-			removeEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
-		}
-
-		// If we remove paths to the goal for any player 
-		// by the placement of a wall, undo it, otherwise
-		// store the new wall in the list of walls
-		if (hasPathToGoal()) {
-			if (wall.orientation==Orientation.HORIZONTAL) {
-				addEdge(wall.northWest, wall.northWest.neighbor(1, 0));
-				addEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
-			} else {
-				addEdge(wall.northWest, wall.northWest.neighbor(0, 1));
-				addEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
-			}
-			return true;
-		} else {
-			if (wall.orientation==Orientation.HORIZONTAL) {
-				addEdge(wall.northWest, wall.northWest.neighbor(1, 0));
-				addEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
-			} else {
-				addEdge(wall.northWest, wall.northWest.neighbor(0, 1));
-				addEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
-			}
-			return false;
-		}
-	}
-
-	// Need to check preconditions
-	public void removeEdge (Square a, Square b) {
-		adjacencyList.get(a).remove(b);
-		adjacencyList.get(b).remove(a);
-	}
 	
-	// Need to check preconditions
-	public void addEdge (Square a, Square b) {
-		adjacencyList.get(a).add(b);
-		adjacencyList.get(b).add(a);
-	}
-
-
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Turn: "+turn+" | Player to Move: "+currentPlayer()+"\n");
-		sb.append("Valid Moves: "+validMoves()+"\n");
+		//sb.append("Valid Moves: "+validMoves()+"\n");
+		//sb.append("Shortest Path to next row: "+shortestPath(currentPlayerPosition(),currentPlayerPosition().getRow()+1)+"\n");
+		sb.append("Heuristic: "+heuristic()+"\n");
 		sb.append("   ");
 		for (char c = 'a' ; c < 'j' ; c++)
 			sb.append(c+"   ");
@@ -381,63 +523,11 @@ public class GameState {
 		}
 		return sb.toString();
 	}
-	
-	private boolean hasPlayer (int i, int j) {
-		// TODO Should restrict return values to be injective. (The rounding down of division could is potentially problematic).  
-		Square transformedPosition = new Square((i-1)>>1,(j-1)>>1);
-		return player1Square.equals(transformedPosition) || player2Square.equals(transformedPosition);
+
+	public Integer turn () {
+		return turn;
 	}
 
-	private boolean hasWall (int i, int j) {
-		return wallLookup.containsKey(new Square(i, j));
-	}
-	
-	private char player (int i, int j) {
-		Square transformedPosition = new Square((i-1)>>1,(j-1)>>1);
-		return player1Square.equals(transformedPosition) ? PLAYER_1_ICON : PLAYER_2_ICON;
-	}
-
-	// TODO Kind of a first world problem, but could make use of Java's unicode support to render a more aesthetic board.
-	private String print (int i, int j) {
-		StringBuilder sb = new StringBuilder();
-		if ((i+j)%2 == 0) {
-			if (j%2 == 0) {
-				sb.append ("+");
-			} else {
-				if (hasPlayer(i,j))
-					sb.append (" "+player(i,j)+" ");
-				else
-					sb.append ("   ");	
-			}
-		} else {
-			if (i%2 == 0) {
-				if (hasWall(i,j))
-					sb.append ("###");
-				else
-					sb.append ("---");
-			} else {
-				if (hasWall(i,j))
-					sb.append ("#");
-				else
-					sb.append ("|");		
-			}
-
-		}
-		if (j == 2*BOARD_SIZE) 
-			sb.append ("\n");
-		return sb.toString();
-	}
-	
-	public int heuristic() {
-		List <Square> path = new LinkedList <Square>();
-		if (currentPlayer() == 0) {
-			path = shortestPath(currentPlayerPosition(), currentPlayerPosition().getRow()+1);
-		} else {
-			path = shortestPath(currentPlayerPosition(), currentPlayerPosition().getRow()-1);
-		}
-		return path.size();
-	}
-	
 	public List<String> validMoves() {
 		List<String> validMoves = new LinkedList<String>();
 		for (int i = 0; i < BOARD_SIZE ; i++) {
@@ -446,12 +536,13 @@ public class GameState {
 				if (isValidTraversal(currentPlayerPosition(), sq)) {
 					validMoves.add(sq.toString());
 				}
-				for (Orientation o: Orientation.values()) {
+/*				for (Orientation o: Orientation.values()) {
 					Wall wall = new Wall(sq, o);
 					if (isValidWallPlacement(wall)) {
 						validMoves.add(wall.toString());
 					}
 				}
+*/
 			}
 		}
 		return validMoves;

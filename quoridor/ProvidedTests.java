@@ -56,6 +56,7 @@ public class ProvidedTests
     String        goodMove; // good next move to be tested for validity
     String        badMove; // bad next move to be tested for validity
 
+    
     @Test
     public void init ()
     {
@@ -173,7 +174,7 @@ public class ProvidedTests
         badMove = "d3v";
         checkValid ();
     }
-    
+
     @Test
     public void angleJump ()
     {
@@ -221,5 +222,5 @@ public class ProvidedTests
         badMove = "f4h";
         checkValid ();
     }
- 
+
 }
