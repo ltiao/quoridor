@@ -1,45 +1,67 @@
 package quoridor;
 
 import java.util.List;
-import static java.util.Arrays.asList;
 
 public class AIPlayer implements Player {
 
-	List <String> shiller = asList("e8", "e2", "e7", "e3", "e6", "e4", "c8v");
-	List <String> ala = asList("e8", "e2", "e7", "e3", "e6", "e4", "d6h", "f6h", "c5v", "g5v");
+	String best = new String();
 	
 	@Override
 	public String getMove(GameState gs) {
 		List<String> validMoves = gs.validMoves();
 		//System.out.println(validMoves);
-		//if (gs.turn() < 7) {
-		//	return shiller.get(gs.turn());
-		//} else {
-			System.out.println(negamax(gs, 5, Integer.MIN_VALUE, Integer.MAX_VALUE, 1));	
-			return validMoves.get((int)(Math.random() * validMoves.size()));
-		//}
+		System.out.println(alphabeta(gs, 3, Integer.MIN_VALUE, Integer.MAX_VALUE, true));
+		System.out.println(negamax(gs, 3, Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
+		//System.out.println(best);
+		return validMoves.get((int)(Math.random() * validMoves.size()));
+	}
+	
+	public int alphabeta(GameState node, int depth, int alpha, int beta, boolean maxPlayer ) {
+		if (depth == 0 || node.isOver()) {
+			return heuristic(node);
+		}
+		if (maxPlayer) {
+			for (String move:node.validMoves()) {
+				GameState child = new GameState(node);
+				child.move(move);
+				alpha = Math.max(alpha, alphabeta(child, depth-1, alpha, beta, false));
+				if (beta <= alpha) {
+					break;
+				}
+			}
+			return alpha;
+		} else {
+			for (String move:node.validMoves()) {
+				GameState child = new GameState(node);
+				child.move(move);
+				beta = Math.min(beta, alphabeta(child, depth-1, alpha, beta, true));
+				if (beta <= alpha) {
+					break;
+				}
+			}
+			return beta;
+		}
+	}
+	
+	public int heuristic(GameState gs) {
+		return gs.player2Square.getRow()-8;
 	}
 	
 	public int negamax(GameState node, int depth, int alpha, int beta, int color) {
-		System.out.println(node);
-		if (node.isOver() || depth == 0) {
-			int temp = color * node.heuristic();
-			System.out.println(temp);
-			return temp;
+		if (depth == 0 || node.isOver()) {
+			return color*heuristic(node);
 		} else {
-			for (String e:node.validMoves()) {
+			for (String move:node.validMoves()) {
 				GameState child = new GameState(node);
-				child.move(e);
-				int val = -negamax( child, depth-1, -beta, -alpha, -color);
+				child.move(move);
+				int val = -negamax(child, depth-1, -beta, -alpha, -color);
 				if (val >= beta) {
-					System.out.println(val);
 					return val;
 				}
 				if (val >= alpha) {
 					alpha = val;
 				}
 			}
-			System.out.println(alpha);
 			return alpha;
 		}
 	}

@@ -104,13 +104,9 @@ public class GameState {
 	public int heuristic() {
 		int score = 0;
 		if (currentPlayer() == 0) {
-			//path = shortestPath(currentPlayerPosition(), currentPlayerPosition().getRow()-1);
-			score = shortestPathToRow(currentPlayerPosition(), 0).size()-shortestPathToRow(otherPlayerPosition(), 8).size();
-			//rows = currentPlayerPosition().getRow();
+			score = shortestPathToRow(player1Square, 0).size()-shortestPathToRow(player2Square, 8).size();
 		} else {
-			//path = shortestPath(currentPlayerPosition(), currentPlayerPosition().getRow()+1);
-			score = shortestPathToRow(otherPlayerPosition(), 8).size()-shortestPathToRow(currentPlayerPosition(), 0).size();
-			//rows = 8-currentPlayerPosition().getRow();
+			score = shortestPathToRow(player2Square, 8).size()-shortestPathToRow(player1Square, 0).size();
 		}
 		return score;
 	}
@@ -207,6 +203,7 @@ public class GameState {
 	 */
 	public boolean move (String move) {
 		boolean valid = true;
+		valid = !isOver();
 		if (isWallPlacement(move)) {
 			Wall wall = new Wall(move);
 			valid = isValidWallPlacement(wall);
@@ -293,6 +290,18 @@ public class GameState {
 		adjacencyList.get(b).remove(a);
 	}
 	
+	public List<Square> shortestPathToWin () {
+		if (currentPlayer()==0) {
+			return shortestPathToRow(player1Square, 0);
+		} else {
+			return shortestPathToRow(player2Square, 8);
+		}
+	}
+	
+	public List<Square> shortestPathToRow (int row) {
+		return shortestPathToRow(currentPlayerPosition(), row);
+	}
+	
 	protected List<Square> shortestPathToRow (Square src, int row) {
 		List<Square> path = new LinkedList<Square>();
 		Queue <Square> queue = new LinkedList<Square>();
@@ -327,7 +336,7 @@ public class GameState {
 		sb.append("Turn: "+turn+" | Player to Move: "+currentPlayer()+"\n");
 		//sb.append("Valid Moves: "+validMoves()+"\n");
 		//sb.append("Shortest Path to next row: "+shortestPath(currentPlayerPosition(),currentPlayerPosition().getRow()+1)+"\n");
-		sb.append("Heuristic: "+heuristic()+"\n");
+		//sb.append("Heuristic: "+heuristic()+"\n");
 		sb.append("   ");
 		for (char c = 'a' ; c < 'j' ; c++)
 			sb.append(c+"   ");
@@ -360,19 +369,33 @@ public class GameState {
 
 	public List<String> validMoves() {
 		List<String> validMoves = new LinkedList<String>();
+		int row = currentPlayerPosition().getRow();
+		int column = currentPlayerPosition().getColumn();
+		for (int d = -2; d < 3; d++) {
+			if (d != 0) { // Vertices are not self-connecting
+				if (row+d >= 0 && row+d < BOARD_SIZE) {
+					Square sq = new Square(row+d,column);
+					if (isValidTraversal(sq)) {
+						validMoves.add(sq.toString());
+					}
+				}
+				if (column+d >= 0 && column+d < BOARD_SIZE) {
+					Square sq = new Square(row,column+d);
+					if (isValidTraversal(sq)) {
+						validMoves.add(sq.toString());
+					}
+				}
+			}
+		}		
 		for (int i = 0; i < BOARD_SIZE ; i++) {
 			for (int j = 0; j < BOARD_SIZE; j++) {
 				Square sq = new Square(i,j);
-				if (isValidTraversal(sq)) {
-					validMoves.add(sq.toString());
-				}
-/*				for (Orientation o: Orientation.values()) {
+				for (Orientation o: Orientation.values()) {
 					Wall wall = new Wall(sq, o);
 					if (isValidWallPlacement(wall)) {
 						validMoves.add(wall.toString());
 					}
 				}
-*/
 			}
 		}
 		return validMoves;
