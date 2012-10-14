@@ -98,7 +98,7 @@ public class AIPlayer implements Player {
 	}
 	
 	public int heuristic(GameState gs) {
-		return gs.player2Square.getRow()-8;
+		return gs.shortestPathToRow(gs.player1Square, gs.player1Square.getRow()-1).size()-gs.shortestPathToRow(gs.player2Square, gs.player2Square.getRow()+1).size();
 	}
 	
 	public int negamaxAlphaBeta(GameState node, int depth, int alpha, int beta, int color) {
