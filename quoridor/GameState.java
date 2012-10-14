@@ -401,4 +401,52 @@ public class GameState {
 		return validMoves;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + numWalls1;
+		result = prime * result + numWalls2;
+		result = prime * result
+				+ ((player1Square == null) ? 0 : player1Square.hashCode());
+		result = prime * result
+				+ ((player2Square == null) ? 0 : player2Square.hashCode());
+		result = prime * result + turn;
+		result = prime * result + ((walls == null) ? 0 : walls.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		GameState other = (GameState) obj;
+		if (numWalls1 != other.numWalls1)
+			return false;
+		if (numWalls2 != other.numWalls2)
+			return false;
+		if (player1Square == null) {
+			if (other.player1Square != null)
+				return false;
+		} else if (!player1Square.equals(other.player1Square))
+			return false;
+		if (player2Square == null) {
+			if (other.player2Square != null)
+				return false;
+		} else if (!player2Square.equals(other.player2Square))
+			return false;
+		if (turn != other.turn)
+			return false;
+		if (walls == null) {
+			if (other.walls != null)
+				return false;
+		} else if (!walls.equals(other.walls))
+			return false;
+		return true;
+	}
+
 }
