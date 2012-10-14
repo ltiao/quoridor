@@ -227,21 +227,15 @@ public class GameState {
 		boolean valid = true;
 		if (isWallPlacement(move)) {
 			Wall wall = new Wall(move);
-			valid &= isValidWallPlacement(wall);
+			valid = isValidWallPlacement(wall);
 			if (valid) {
 				placeWall(wall);
 			}
 		} else {
 			Square sq = new Square(move);
 			valid = isValidTraversal(sq);
-			if (turn%2 == 0) {
-				if (valid) {
-					player1Square = sq;
-				}
-			} else {
-				if (valid) {
-					player2Square = sq;
-				}
+			if (valid) {
+				traverse(sq);
 			}
 		}
 		if (valid) {
@@ -250,8 +244,12 @@ public class GameState {
 		return valid;
 	}
 	
-	public void traverse() {
-		
+	public void traverse(Square sq) {
+		if (currentPlayer()==0) {
+			player1Square = sq;
+		} else {
+			player2Square = sq;
+		}
 	}
 	
 	public void placeWall(Wall wall) {
