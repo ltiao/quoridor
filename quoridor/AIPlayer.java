@@ -1,6 +1,7 @@
 package quoridor;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class AIPlayer implements Player {
 
@@ -12,11 +13,35 @@ public class AIPlayer implements Player {
 	public String getMove(GameState gs) {
 		//List<String> validMoves = gs.validMoves();
 		//System.out.println(validMoves);
-		System.out.println(minimaxAlphaBetaWithMove(gs, 4, Integer.MIN_VALUE, Integer.MAX_VALUE, true));
 		//System.out.println(negamaxAlphaBeta(gs, 3, Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
 		//System.out.println(negamax(gs, 3));
 		//System.out.println(bestMove);
 		//return validMoves.get((int)(Math.random() * validMoves.size()));
+		if (gs.currentPlayer()==0) {
+			if (gs.numWalls1 == 10) {
+				List <Square> path = gs.shortestPathToWin();
+				if (gs.isValidTraversal(path.get(0))) {
+					return path.get(0).toString();
+				} else {
+					List <String> validMoves = gs.validMoves();
+					return validMoves.get((int)(Math.random() * validMoves.size()));
+				}
+			} else {
+				minimaxAlphaBetaWithMove(gs, 4, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
+			}
+		} else {
+			if (gs.numWalls2 == 10) {
+				List <Square> path = gs.shortestPathToWin();
+				if (gs.isValidTraversal(path.get(0))) {
+					return path.get(0).toString();
+				} else {
+					List <String> validMoves = gs.validMoves();
+					return validMoves.get((int)(Math.random() * validMoves.size()));
+				}
+			} else {
+				minimaxAlphaBetaWithMove(gs, 4, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
+			}
+		}
 		return bestMove;
 	}
 	
