@@ -19,9 +19,10 @@ public class GameState {
 	protected HashMap <Square,Orientation> wallLookup = new HashMap<Square,Orientation>();
 	Square player1Square = new Square("e9");
 	Square player2Square = new Square("e1");
-	LinkedList <Wall> player1Walls = new LinkedList<Wall>();
-	LinkedList <Wall> player2Walls = new LinkedList<Wall>();
-	Integer turn = 0;
+	LinkedList <Wall> walls = new LinkedList<Wall>();
+	int numWalls1 = 0;
+	int numWalls2 = 0;
+	int turn = 0;
 
 	public GameState() {
 		// Initialize adjacency list
@@ -50,8 +51,7 @@ public class GameState {
 		wallLookup = new HashMap<Square,Orientation>(gs.wallLookup);
 		player1Square = new Square(gs.player1Square);
 		player2Square = new Square(gs.player2Square);
-		player1Walls.addAll(gs.player1Walls);
-		player2Walls.addAll(gs.player2Walls);
+		walls.addAll(gs.walls);
 		turn = gs.turn;
 	}
 	
@@ -89,89 +89,9 @@ public class GameState {
 			System.out.println(e+": "+adjacencyList.get(e));
 		}
 	}
-	
-	/**
-	 * @param src
-	 * @param dest
-	 * @return 0 if no path exists
-	 */
-	public int distance (Square src, Square dest) {
-		return shortestPath (src, dest).size ();
-	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		GameState other = (GameState) obj;
-		if (adjacencyList == null) {
-			if (other.adjacencyList != null)
-				return false;
-		} else if (!adjacencyList.equals(other.adjacencyList))
-			return false;
-		if (player1Square == null) {
-			if (other.player1Square != null)
-				return false;
-		} else if (!player1Square.equals(other.player1Square))
-			return false;
-		if (player1Walls == null) {
-			if (other.player1Walls != null)
-				return false;
-		} else if (!player1Walls.equals(other.player1Walls))
-			return false;
-		if (player2Square == null) {
-			if (other.player2Square != null)
-				return false;
-		} else if (!player2Square.equals(other.player2Square))
-			return false;
-		if (player2Walls == null) {
-			if (other.player2Walls != null)
-				return false;
-		} else if (!player2Walls.equals(other.player2Walls))
-			return false;
-		if (turn == null) {
-			if (other.turn != null)
-				return false;
-		} else if (!turn.equals(other.turn))
-			return false;
-		if (wallLookup == null) {
-			if (other.wallLookup != null)
-				return false;
-		} else if (!wallLookup.equals(other.wallLookup))
-			return false;
-		return true;
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((adjacencyList == null) ? 0 : adjacencyList.hashCode());
-		result = prime * result
-				+ ((player1Square == null) ? 0 : player1Square.hashCode());
-		result = prime * result
-				+ ((player1Walls == null) ? 0 : player1Walls.hashCode());
-		result = prime * result
-				+ ((player2Square == null) ? 0 : player2Square.hashCode());
-		result = prime * result
-				+ ((player2Walls == null) ? 0 : player2Walls.hashCode());
-		result = prime * result + ((turn == null) ? 0 : turn.hashCode());
-		result = prime * result
-				+ ((wallLookup == null) ? 0 : wallLookup.hashCode());
-		return result;
-	}
-	
-	public boolean hasPath (Square src, Square dest) {
-		return distance (src, dest) > 0;
-	}
 
 	public boolean hasPathToGoal () {
-		return !(shortestPath(player1Square, 0).isEmpty() || shortestPath(player2Square, 8).isEmpty());
+		return !(shortestPathToRow(player1Square, 0).isEmpty() || shortestPathToRow(player2Square, 8).isEmpty());
 	}
 
 	private boolean hasPlayer (int i, int j) {
@@ -188,11 +108,11 @@ public class GameState {
 		int score = 0;
 		if (currentPlayer() == 0) {
 			//path = shortestPath(currentPlayerPosition(), currentPlayerPosition().getRow()-1);
-			score = shortestPath(currentPlayerPosition(), 0).size()-shortestPath(otherPlayerPosition(), 8).size();
+			score = shortestPathToRow(currentPlayerPosition(), 0).size()-shortestPathToRow(otherPlayerPosition(), 8).size();
 			//rows = currentPlayerPosition().getRow();
 		} else {
 			//path = shortestPath(currentPlayerPosition(), currentPlayerPosition().getRow()+1);
-			score = shortestPath(otherPlayerPosition(), 8).size()-shortestPath(currentPlayerPosition(), 0).size();
+			score = shortestPathToRow(otherPlayerPosition(), 8).size()-shortestPathToRow(currentPlayerPosition(), 0).size();
 			//rows = 8-currentPlayerPosition().getRow();
 		}
 		return score;
@@ -236,10 +156,6 @@ public class GameState {
 	
 	public boolean isValidWallPlacement (Wall wall) {
 
-		LinkedList<Wall> walls = new LinkedList<Wall>();
-		walls.addAll(player1Walls);
-		walls.addAll(player2Walls);
-
 		// Check wall is not being placed at border
 		if (wall.northWest.getColumn()==8 || wall.northWest.getRow()==8) {
 			return false;
@@ -247,9 +163,13 @@ public class GameState {
 
 		// Check wall is not intersecting existing wall
 		if (wall.orientation == Orientation.HORIZONTAL) {
+		
+			
 			if (walls.contains(wall) || walls.contains(wall.neighbor(0, 0, Orientation.VERTICAL)) || walls.contains(wall.neighbor(0, -1, Orientation.HORIZONTAL)) || walls.contains(wall.neighbor(0, 1, Orientation.HORIZONTAL))) {
 				return false;
 			}
+		
+		
 		} else {
 			if (walls.contains(wall) || walls.contains(wall.neighbor(0, 0, Orientation.HORIZONTAL)) || walls.contains(wall.neighbor(-1, 0, Orientation.VERTICAL)) || walls.contains(wall.neighbor(1, 0, Orientation.VERTICAL))) {
 				return false;
@@ -305,9 +225,10 @@ public class GameState {
 			Wall wall = new Wall(move);
 			valid &= isValidWallPlacement(wall);
 			if (turn%2 == 0) {
-				valid &= player1Walls.size() < 10;
+				valid &= numWalls1 < 10;
 				if (valid) {
-					player1Walls.add(wall);
+					numWalls1++;
+					walls.add(wall);
 					if (wall.getOrientation() == Orientation.HORIZONTAL) {
 						removeEdge(wall.northWest, wall.northWest.neighbor(1, 0));
 						removeEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
@@ -321,9 +242,10 @@ public class GameState {
 					}
 				}
 			} else {
-				valid &= player2Walls.size() < 10;
+				valid &= numWalls2 < 10;
 				if (valid) {
-					player2Walls.add(wall);
+					numWalls2++;
+					walls.add(wall);
 					if (wall.getOrientation() == Orientation.HORIZONTAL) {
 						removeEdge(wall.northWest, wall.northWest.neighbor(1, 0));
 						removeEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
@@ -398,7 +320,7 @@ public class GameState {
 		adjacencyList.get(b).remove(a);
 	}
 
-	protected List<Square> shortestPath (Square src, int row) {
+	protected List<Square> shortestPathToRow (Square src, int row) {
 		List<Square> path = new LinkedList<Square>();
 		Queue <Square> queue = new LinkedList<Square>();
 		HashMap <Square,Square> parentNode = new HashMap<Square,Square>();
@@ -409,34 +331,6 @@ public class GameState {
 		while (!queue.isEmpty()) {
 			Square t = queue.poll();
 			if (t.getRow() == row) {
-				while (!t.equals(src)) {
-					path.add(t);
-					t = parentNode.get(t);
-				}
-				Collections.reverse(path);
-				return path;
-			}
-			for (Square e: adjacencyList.get(t)) {
-				if (!parentNode.containsKey(e)) {
-					parentNode.put(e, t);
-					queue.add(e);
-				}
-			}
-		}
-		return path;
-	}
-	
-	protected List<Square> shortestPath (Square src, Square dest) {
-		List<Square> path = new LinkedList<Square>();
-		Queue <Square> queue = new LinkedList<Square>();
-		HashMap <Square,Square> parentNode = new HashMap<Square,Square>();
-		// enqueue start configuration onto queue
-		queue.add(src);
-		// mark start configuration
-		parentNode.put(src, null);
-		while (!queue.isEmpty()) {
-			Square t = queue.poll();
-			if (t.equals(dest)) {
 				while (!t.equals(src)) {
 					path.add(t);
 					t = parentNode.get(t);
