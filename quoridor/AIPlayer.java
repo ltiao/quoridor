@@ -12,7 +12,7 @@ public class AIPlayer implements Player {
 	public String getMove(GameState gs) {
 		//List<String> validMoves = gs.validMoves();
 		//System.out.println(validMoves);
-		System.out.println(minimaxAlphaBetaWithMove(gs, 3, Integer.MIN_VALUE, Integer.MAX_VALUE, true));
+		System.out.println(minimaxAlphaBetaWithMove(gs, 4, Integer.MIN_VALUE, Integer.MAX_VALUE, true));
 		//System.out.println(negamaxAlphaBeta(gs, 3, Integer.MIN_VALUE, Integer.MAX_VALUE, 1));
 		//System.out.println(negamax(gs, 3));
 		//System.out.println(bestMove);
