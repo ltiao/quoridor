@@ -62,8 +62,9 @@ public class GameState {
 		}
 	}
 	
-	// Need to check preconditions
+	// TODO: Need to check preconditions
 	public void addEdge (Square a, Square b) {
+		// Edges are undirected
 		adjacencyList.get(a).add(b);
 		adjacencyList.get(b).add(a);
 	}
@@ -80,10 +81,6 @@ public class GameState {
 		return currentPlayer () == 0 ? player1Square : player2Square;
 	}
 	
-	public Square otherPlayerPosition () {
-		return currentPlayerPosition().equals(player1Square) ? player2Square : player1Square;
-	}
-
 	protected void displayAdjacencyList () {
 		for (Square e:adjacencyList.keySet()) {
 			System.out.println(e+": "+adjacencyList.get(e));
@@ -103,7 +100,7 @@ public class GameState {
 	private boolean hasWall (int i, int j) {
 		return wallLookup.containsKey(new Square(i, j));
 	}
-	
+
 	public int heuristic() {
 		int score = 0;
 		if (currentPlayer() == 0) {
@@ -117,7 +114,7 @@ public class GameState {
 		}
 		return score;
 	}
-
+	
 	/**
 	 * Terminal Test
 	 * @return true if any player has reached the other side
@@ -153,9 +150,10 @@ public class GameState {
 		}
 		return false;
 	}
-	
-	public boolean isValidWallPlacement (Wall wall) {
 
+	public boolean isValidWallPlacement (Wall wall) {
+		
+		// Check number of walls placed has not been exceeded for any player
 		if (!(numWalls1 < 10 && numWalls2 < 10)) {
 			return false;
 		}
@@ -167,13 +165,9 @@ public class GameState {
 
 		// Check wall is not intersecting existing wall
 		if (wall.orientation == Orientation.HORIZONTAL) {
-		
-			
 			if (walls.contains(wall) || walls.contains(wall.neighbor(0, 0, Orientation.VERTICAL)) || walls.contains(wall.neighbor(0, -1, Orientation.HORIZONTAL)) || walls.contains(wall.neighbor(0, 1, Orientation.HORIZONTAL))) {
 				return false;
 			}
-		
-		
 		} else {
 			if (walls.contains(wall) || walls.contains(wall.neighbor(0, 0, Orientation.HORIZONTAL)) || walls.contains(wall.neighbor(-1, 0, Orientation.VERTICAL)) || walls.contains(wall.neighbor(1, 0, Orientation.VERTICAL))) {
 				return false;
@@ -190,35 +184,23 @@ public class GameState {
 			removeEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
 		}
 
-		// If we remove paths to the goal for any player 
-		// by the placement of a wall, undo it, otherwise
-		// store the new wall in the list of walls
-		if (hasPathToGoal()) {
-			if (wall.orientation==Orientation.HORIZONTAL) {
-				addEdge(wall.northWest, wall.northWest.neighbor(1, 0));
-				addEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
-			} else {
-				addEdge(wall.northWest, wall.northWest.neighbor(0, 1));
-				addEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
-			}
-			return true;
+		// Check if we have removed a path for any player by the
+		// placement of a wall
+		boolean hasPath = hasPathToGoal();
+		if (wall.orientation==Orientation.HORIZONTAL) {
+			addEdge(wall.northWest, wall.northWest.neighbor(1, 0));
+			addEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
 		} else {
-			if (wall.orientation==Orientation.HORIZONTAL) {
-				addEdge(wall.northWest, wall.northWest.neighbor(1, 0));
-				addEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
-			} else {
-				addEdge(wall.northWest, wall.northWest.neighbor(0, 1));
-				addEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
-			}
-			return false;
+			addEdge(wall.northWest, wall.northWest.neighbor(0, 1));
+			addEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
 		}
+		return hasPath;
 	}
 	
 	protected boolean isWallPlacement (String move) {
 		return isValidSyntax(move) && move.length() == 3;
 	}
-
-
+	
 	/**
 	 * Mutator method for mutating game state. Return false if invalid move.
 	 * @param move
@@ -243,13 +225,10 @@ public class GameState {
 		}
 		return valid;
 	}
-	
-	public void traverse(Square sq) {
-		if (currentPlayer()==0) {
-			player1Square = sq;
-		} else {
-			player2Square = sq;
-		}
+
+
+	public Square otherPlayerPosition () {
+		return currentPlayerPosition().equals(player1Square) ? player2Square : player1Square;
 	}
 	
 	public void placeWall(Wall wall) {
@@ -276,7 +255,7 @@ public class GameState {
 		Square transformedPosition = new Square((i-1)>>1,(j-1)>>1);
 		return player1Square.equals(transformedPosition) ? PLAYER_1_ICON : PLAYER_2_ICON;
 	}
-
+	
 	// TODO Kind of a first world problem, but could make use of Java's unicode support to render a more aesthetic board.
 	private String print (int i, int j) {
 		StringBuilder sb = new StringBuilder();
@@ -307,13 +286,13 @@ public class GameState {
 			sb.append ("\n");
 		return sb.toString();
 	}
-	
+
 	// Need to check preconditions
 	public void removeEdge (Square a, Square b) {
 		adjacencyList.get(a).remove(b);
 		adjacencyList.get(b).remove(a);
 	}
-
+	
 	protected List<Square> shortestPathToRow (Square src, int row) {
 		List<Square> path = new LinkedList<Square>();
 		Queue <Square> queue = new LinkedList<Square>();
@@ -341,7 +320,7 @@ public class GameState {
 		}
 		return path;
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -365,6 +344,14 @@ public class GameState {
 			}
 		}
 		return sb.toString();
+	}
+	
+	public void traverse(Square sq) {
+		if (currentPlayer()==0) {
+			player1Square = sq;
+		} else {
+			player2Square = sq;
+		}
 	}
 
 	public Integer turn () {
