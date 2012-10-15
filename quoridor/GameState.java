@@ -15,7 +15,6 @@ public class GameState {
 	 * A hash table is used to associate each vertex with a doubly linked list of adjacent vertices
 	 */
 	protected HashMap <Square,LinkedList<Square>> adjacencyList = new HashMap <Square,LinkedList<Square>> ();
-	// This is used for printing. Could be done away with with a little thought.
 	Square player1Square = new Square("e9");
 	Square player2Square = new Square("e1");
 	LinkedList <Wall> walls = new LinkedList<Wall>();
@@ -90,31 +89,23 @@ public class GameState {
 	}
 
 	protected boolean hasPlayer (int i, int j) {
-		// TODO Should restrict return values to be injective. (The rounding down of division could is potentially problematic).  
-		Square transformedPosition = new Square((i-1)>>1,(j-1)>>1);
-		return player1Square.equals(transformedPosition) || player2Square.equals(transformedPosition);
+		if (i%2 == 1 && j%2 == 1) {
+			Square transformed = transform(i, j);
+			return player1Square.equals(transformed) || player2Square.equals(transformed);
+		}
+		return false;
 	}
 
 	protected boolean hasWall (int i, int j) {
 		if (i%2==0) {
-			return walls.contains(new Wall(CoordToSquare(i-1, j), Orientation.HORIZONTAL)) || walls.contains(new Wall(CoordToSquare(i-1, j-2), Orientation.HORIZONTAL));
+			return walls.contains(new Wall(transform(i-1, j), Orientation.HORIZONTAL)) || walls.contains(new Wall(transform(i-1, j-2), Orientation.HORIZONTAL));
 		} else {
-			return walls.contains(new Wall(CoordToSquare(i, j-1), Orientation.VERTICAL)) || walls.contains(new Wall(CoordToSquare(i-2, j-1), Orientation.VERTICAL));
+			return walls.contains(new Wall(transform(i, j-1), Orientation.VERTICAL)) || walls.contains(new Wall(transform(i-2, j-1), Orientation.VERTICAL));
 		}
 	}
 	
-	protected Square CoordToSquare (int i, int j) {
+	protected Square transform (int i, int j) {
 		return new Square((i-1)>>1, (j-1)>>1);
-	}
-
-	public int heuristic() {
-		int score = 0;
-		if (currentPlayer() == 0) {
-			score = shortestPathToRow(player1Square, 0).size()-shortestPathToRow(player2Square, 8).size();
-		} else {
-			score = shortestPathToRow(player2Square, 8).size()-shortestPathToRow(player1Square, 0).size();
-		}
-		return score;
 	}
 	
 	/**
@@ -153,6 +144,22 @@ public class GameState {
 		return false;
 	}
 
+	public int currentPlayerNumWalls() {
+		if (currentPlayer()==0) {
+			return numWalls1;
+		} else {
+			return numWalls2;
+		}
+	}
+	
+	public int otherPlayerNumWalls() {
+		if (currentPlayer()==0) {
+			return numWalls2;
+		} else {
+			return numWalls1;
+		}
+	}
+	
 	public boolean isValidWallPlacement (Wall wall) {
 		
 		// Check number of walls placed has not been exceeded for any player
@@ -209,16 +216,16 @@ public class GameState {
 	 */
 	public boolean move (String move) {
 		boolean valid = true;
-		valid = !isOver();
+		valid &= !isOver();
 		if (isWallPlacement(move)) {
 			Wall wall = new Wall(move);
-			valid = isValidWallPlacement(wall);
+			valid &= isValidWallPlacement(wall);
 			if (valid) {
 				placeWall(wall);
 			}
 		} else {
 			Square sq = new Square(move);
-			valid = isValidTraversal(sq);
+			valid &= isValidTraversal(sq);
 			if (valid) {
 				traverse(sq);
 			}
@@ -251,8 +258,7 @@ public class GameState {
 	}
 	
 	private char player (int i, int j) {
-		Square transformedPosition = new Square((i-1)>>1,(j-1)>>1);
-		return player1Square.equals(transformedPosition) ? PLAYER_1_ICON : PLAYER_2_ICON;
+		return player1Square.equals(transform(i,j)) ? PLAYER_1_ICON : PLAYER_2_ICON;
 	}
 	
 	// TODO Kind of a first world problem, but could make use of Java's unicode support to render a more aesthetic board.
@@ -335,10 +341,7 @@ public class GameState {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Turn: "+turn+" | Player to Move: "+currentPlayer()+"\n");
-		//sb.append("Valid Moves: "+validMoves()+"\n");
-		//sb.append("Shortest Path to next row: "+shortestPath(currentPlayerPosition(),currentPlayerPosition().getRow()+1)+"\n");
-		//sb.append("Heuristic: "+heuristic()+"\n");
+		sb.append("Turn: "+turn+" | Player to Move: "+currentPlayer()+"| Walls Remaining: "+(10-currentPlayerNumWalls())+"\n");
 		sb.append("   ");
 		for (char c = 'a' ; c < 'j' ; c++)
 			sb.append(c+"   ");
@@ -365,7 +368,7 @@ public class GameState {
 		}
 	}
 
-	public Integer turn () {
+	public int turn () {
 		return turn;
 	}
 
@@ -374,7 +377,7 @@ public class GameState {
 		int row = currentPlayerPosition().getRow();
 		int column = currentPlayerPosition().getColumn();
 		for (int d = -2; d < 3; d++) {
-			if (d != 0) { // Vertices are not self-connecting
+			if (d != 0) {
 				if (row+d >= 0 && row+d < BOARD_SIZE) {
 					Square sq = new Square(row+d,column);
 					if (isValidTraversal(sq)) {
@@ -401,54 +404,6 @@ public class GameState {
 			}
 		}
 		return validMoves;
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + numWalls1;
-		result = prime * result + numWalls2;
-		result = prime * result
-				+ ((player1Square == null) ? 0 : player1Square.hashCode());
-		result = prime * result
-				+ ((player2Square == null) ? 0 : player2Square.hashCode());
-		result = prime * result + turn;
-		result = prime * result + ((walls == null) ? 0 : walls.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		GameState other = (GameState) obj;
-		if (numWalls1 != other.numWalls1)
-			return false;
-		if (numWalls2 != other.numWalls2)
-			return false;
-		if (player1Square == null) {
-			if (other.player1Square != null)
-				return false;
-		} else if (!player1Square.equals(other.player1Square))
-			return false;
-		if (player2Square == null) {
-			if (other.player2Square != null)
-				return false;
-		} else if (!player2Square.equals(other.player2Square))
-			return false;
-		if (turn != other.turn)
-			return false;
-		if (walls == null) {
-			if (other.walls != null)
-				return false;
-		} else if (!walls.equals(other.walls))
-			return false;
-		return true;
 	}
 
 }
