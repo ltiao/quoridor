@@ -30,7 +30,8 @@ public class UserInterface {
 			}
 			else if (command.equals("2")) {
 				validInput = true;
-				player2 = new AIPlayer();
+				player2 = new Miranda();
+
 			}
 			else if (command.equals("3")) {
 				System.out.println("Enter file name:");
