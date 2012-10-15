@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.Scanner;
 
 public class UserInterface {
-
+	
 	/**
 	 * Prints out a menu before allowing the user to select what game type 
 	 * they would like to play and other options regarding the functionality
@@ -81,6 +81,8 @@ public class UserInterface {
 			}
 			if (!gs.move(move)) {
 				System.out.println("Invalid move");
+			} else {
+				
 			}
 		}
 		System.out.println("Game Over!");

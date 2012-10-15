@@ -332,23 +332,12 @@ public class GameState {
 				Collections.reverse(path);
 				return path;
 			}
-			for (Square e:t.neighbourhood(2)) {
-				if (isValidTraversal(e)) {
-					if (!parentNode.containsKey(e)) {
-						parentNode.put(e, t);
-						queue.add(e);
-					}
-				}
-			}
-			
-			/*
 			for (Square e: adjacencyList.get(t)) {
 				if (!parentNode.containsKey(e)) {
 					parentNode.put(e, t);
 					queue.add(e);
 				}
 			}
-			*/
 		}
 		return path;
 	}
