@@ -4,6 +4,16 @@ import java.util.List;
 
 public class Miranda extends AIPlayer {
 
+	int depth;
+	
+	public Miranda() {
+		depth = 3;
+	}
+	
+	public Miranda(int depth) {
+		this.depth = depth;
+	}
+	
 	@Override
 	public String getMove(GameState gs) {
 		if (gs.currentPlayer()==0) {
@@ -16,7 +26,7 @@ public class Miranda extends AIPlayer {
 					return validMoves.get((int)(Math.random() * validMoves.size()));
 				}
 			} else {
-				minimaxAlphaBetaWithMove(gs, 3, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
+				minimaxAlphaBetaWithMove(gs, depth, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
 			}
 		} else {
 			if (gs.numWalls2 == 10) {
@@ -28,7 +38,7 @@ public class Miranda extends AIPlayer {
 					return validMoves.get((int)(Math.random() * validMoves.size()));
 				}
 			} else {
-				minimaxAlphaBetaWithMove(gs, 3, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
+				minimaxAlphaBetaWithMove(gs, depth, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
 			}
 		}
 		return bestMove;

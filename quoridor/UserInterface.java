@@ -30,8 +30,14 @@ public class UserInterface {
 			}
 			else if (command.equals("2")) {
 				validInput = true;
-				player2 = new Miranda();
-
+				int ai = 2;
+				System.out.println("Enter the level of AI expertise: (1-4)");
+				ai = in.nextInt();
+				if (ai == 1) {
+					player2 = new ForrestGump();
+				} else if (ai<= 4) {
+					player2 = new Miranda(ai);
+				}
 			}
 			else if (command.equals("3")) {
 				System.out.println("Enter file name:");

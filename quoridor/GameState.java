@@ -162,7 +162,12 @@ public class GameState {
 	public boolean isValidWallPlacement (Wall wall) {
 		
 		// Check number of walls placed has not been exceeded for any player
+		/*
 		if (!(numWalls1 < 10 && numWalls2 < 10)) {
+			return false;
+		}
+		*/
+		if (currentPlayerNumWalls() >= 10) {
 			return false;
 		}
 		
@@ -327,12 +332,23 @@ public class GameState {
 				Collections.reverse(path);
 				return path;
 			}
+			for (Square e:t.neighbourhood(2)) {
+				if (isValidTraversal(e)) {
+					if (!parentNode.containsKey(e)) {
+						parentNode.put(e, t);
+						queue.add(e);
+					}
+				}
+			}
+			
+			/*
 			for (Square e: adjacencyList.get(t)) {
 				if (!parentNode.containsKey(e)) {
 					parentNode.put(e, t);
 					queue.add(e);
 				}
 			}
+			*/
 		}
 		return path;
 	}
