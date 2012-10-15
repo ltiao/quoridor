@@ -31,12 +31,20 @@ public class UserInterface {
 			else if (command.equals("2")) {
 				validInput = true;
 				int ai = 2;
-				System.out.println("Enter the level of AI expertise: (1-4)");
-				ai = in.nextInt();
-				if (ai == 1) {
-					player2 = new ForrestGump();
-				} else if (ai<= 4) {
-					player2 = new Miranda(ai);
+				boolean validLevel = false;
+				while (!validLevel) {
+					System.out.println("Enter the level of AI expertise: (1-4)");
+					ai = in.nextInt();
+					if (ai == 1) {
+						validLevel = true;
+						player2 = new ForrestGump();
+					} else if (ai <= 4) {
+						validLevel = true;
+						player2 = new Miranda(ai);
+					}
+					else {
+						System.out.println("Invalid level number");
+					}
 				}
 			}
 			else if (command.equals("3")) {
