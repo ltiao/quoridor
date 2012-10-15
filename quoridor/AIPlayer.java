@@ -27,7 +27,7 @@ public class AIPlayer implements Player {
 					return validMoves.get((int)(Math.random() * validMoves.size()));
 				}
 			} else {
-				minimaxAlphaBetaWithMove(gs, 4, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
+				minimaxAlphaBetaWithMove(gs, 3, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
 			}
 		} else {
 			if (gs.numWalls2 == 10) {
@@ -39,7 +39,7 @@ public class AIPlayer implements Player {
 					return validMoves.get((int)(Math.random() * validMoves.size()));
 				}
 			} else {
-				minimaxAlphaBetaWithMove(gs, 4, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
+				minimaxAlphaBetaWithMove(gs, 3, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
 			}
 		}
 		return bestMove;

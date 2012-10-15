@@ -1,5 +1,8 @@
 package quoridor;
 
+import java.util.LinkedList;
+import java.util.List;
+
 // TODO Square should be inherited from a Point object so point can be
 // also be used by the coordinate system for rendering the ASCII game board.
 // All properties inherited except:
@@ -42,6 +45,21 @@ public class Square {
     //Precondition
     public Square neighbor(int row, int column) {
     	return new Square(this.row+row, this.column+column);
+    }
+    
+    public List<Square> neighborhood (int r) {
+		List <Square> neighbors = new LinkedList<Square>();
+    	for (int d = -r; d < r+1; d++) {
+			if (d != 0) {
+				if (row+d >= 0 && row+d < 9) {
+					neighbors.add(new Square(row+d,column));
+				}
+				if (column+d >= 0 && column+d < 9) {
+					neighbors.add(new Square(row,column+d));
+				}
+			}
+		}
+    	return neighbors;
     }
     
     @Override

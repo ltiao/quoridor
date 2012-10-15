@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GameState {
 	static final int BOARD_SIZE = 9;
@@ -121,12 +123,9 @@ public class GameState {
 	}
 
 	protected boolean isValidSyntax (String move) {
-		return true;
-		/*
 		Pattern p = Pattern.compile("[a-i][0-9][hv]?");
 		Matcher m = p.matcher(move);
 		return m.matches();
-		*/
 	}
 
 	public boolean isValidTraversal (Square dest) {
@@ -341,7 +340,7 @@ public class GameState {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Turn: "+turn+" | Player to Move: "+currentPlayer()+"| Walls Remaining: "+(10-currentPlayerNumWalls())+"\n");
+		sb.append("Turn: "+turn+" | Player to Move: "+currentPlayer()+" | Walls Remaining: "+(10-currentPlayerNumWalls())+"\n");
 		sb.append("   ");
 		for (char c = 'a' ; c < 'j' ; c++)
 			sb.append(c+"   ");
@@ -374,24 +373,11 @@ public class GameState {
 
 	public List<String> validMoves() {
 		List<String> validMoves = new LinkedList<String>();
-		int row = currentPlayerPosition().getRow();
-		int column = currentPlayerPosition().getColumn();
-		for (int d = -2; d < 3; d++) {
-			if (d != 0) {
-				if (row+d >= 0 && row+d < BOARD_SIZE) {
-					Square sq = new Square(row+d,column);
-					if (isValidTraversal(sq)) {
-						validMoves.add(sq.toString());
-					}
-				}
-				if (column+d >= 0 && column+d < BOARD_SIZE) {
-					Square sq = new Square(row,column+d);
-					if (isValidTraversal(sq)) {
-						validMoves.add(sq.toString());
-					}
-				}
+		for (Square sq:currentPlayerPosition().neighborhood(2)) {
+			if (isValidTraversal(sq)) {
+				validMoves.add(sq.toString());
 			}
-		}		
+		}
 		for (int i = 0; i < BOARD_SIZE ; i++) {
 			for (int j = 0; j < BOARD_SIZE; j++) {
 				Square sq = new Square(i,j);
