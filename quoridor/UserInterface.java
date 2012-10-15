@@ -9,11 +9,14 @@ import java.util.Scanner;
 public class UserInterface {
 
 	/**
-	 * @param args
+	 * Prints out a menu before allowing the user to select what game type 
+	 * they would like to play and other options regarding the functionality
+	 * of the game such as loading a saved game. 
+	 * @param args 
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
-		String menu = "********MENU********\n***Options***\n1:Human vs Human\t2:Human vs AI";
+		String menu = "\t********MENU********\n\t\t***Options***\n1:Human vs Human\t2:Human vs AI\t3:Load Saved Game";
 		System.out.print(menu);
 		Boolean validInput = false;
 		Player player1 = new HumanPlayer();
@@ -24,12 +27,9 @@ public class UserInterface {
 			command = in.nextLine();
 			if (command.equals("1")) {
 				validInput = true;
-				player1 = new HumanPlayer();
-				player2 = new HumanPlayer();
 			}
 			else if (command.equals("2")) {
 				validInput = true;
-				player1 = new HumanPlayer();
 				player2 = new AIPlayer();
 			}
 			else if (command.equals("3")) {

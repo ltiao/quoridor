@@ -373,7 +373,7 @@ public class GameState {
 
 	public List<String> validMoves() {
 		List<String> validMoves = new LinkedList<String>();
-		for (Square sq:currentPlayerPosition().neighborhood(2)) {
+		for (Square sq:currentPlayerPosition().neighbourhood(2)) {
 			if (isValidTraversal(sq)) {
 				validMoves.add(sq.toString());
 			}

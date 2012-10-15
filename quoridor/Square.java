@@ -3,12 +3,6 @@ package quoridor;
 import java.util.LinkedList;
 import java.util.List;
 
-// TODO Square should be inherited from a Point object so point can be
-// also be used by the coordinate system for rendering the ASCII game board.
-// All properties inherited except:
-// Constructor should modulo integer parameters by Board.BOARD_SIZE to guarantee perfect hashing.
-// toString should print coordinates in Quoridor text format.
-
 public class Square {
 	private int row;
 	private int column;
@@ -16,11 +10,18 @@ public class Square {
     public Square() {
     }
 	
+    /**
+     * @param row row number that this square will be on
+     * @param column column number that this square will be on
+     */
     public Square(int row, int column) {
         this.row = row;
         this.column = column;
     }
     
+    /**
+     * @param s string constructor
+     */
     public Square(String s) {
     	// TODO Should probably have preconditions to check the string is valid though that may be the job of isValidMove
     	if (s.length() > 1) {
@@ -29,25 +30,43 @@ public class Square {
         }
     }
 
+    /**
+     * @param sq square passed in to construct new square
+     */
     public Square(Square sq) {
     	this.row = sq.getRow();
     	this.column = sq.getColumn();
     }
     
+    /**
+     * @return the row number for this square
+     */
     public int getRow() {
         return row;
     }
 
+    /**
+     * @return the column number for this square
+     */
     public int getColumn() {
         return column;
     }
     
-    //Precondition
+    /**
+     * Precondition: this.row+row cannot be negative, this.column+column cannot be negative
+     * @param row displacement of row
+     * @param column displacement of column
+     * @return new square with displacements applied
+     */
     public Square neighbor(int row, int column) {
     	return new Square(this.row+row, this.column+column);
     }
     
-    public List<Square> neighborhood (int r) {
+    /**
+     * @param r numeric displacement of squares surrounding current square
+     * @return list of squares surrounding current square according to displacement
+     */
+    public List<Square> neighbourhood (int r) {
 		List <Square> neighbors = new LinkedList<Square>();
     	for (int d = -r; d < r+1; d++) {
 			if (d != 0) {
@@ -86,10 +105,18 @@ public class Square {
 		return 9*row+column;
 	}
 	
+	/**
+	 * @param sq square to check if current square is cardinal to sq.
+	 * @return checks if square is on same the same row or column of current square
+	 */
 	public boolean isCardinalTo(Square sq) {
 		return (row - sq.row != 0) ^ (column - sq.column != 0);
 	}
 	
+	/**
+	 * @param sq square to get a square opposite to it (for jumping)
+	 * @return square that 2 squares away from current square
+	 */
 	public Square opposite(Square sq) {
 		return new Square(2*sq.row - row, 2*sq.column - column);
 	}
