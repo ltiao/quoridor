@@ -10,7 +10,7 @@ import java.util.List;
  * possible with help from his uncanny athleticism.
  * tl;dr - doesn't place walls, uses shortest paths
  */
-public class ForrestGump implements Player {
+public class ForrestGump extends AIPlayer {
 
 	@Override
 	public String getMove(GameState gs) {
