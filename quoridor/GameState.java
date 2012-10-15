@@ -16,7 +16,6 @@ public class GameState {
 	 */
 	protected HashMap <Square,LinkedList<Square>> adjacencyList = new HashMap <Square,LinkedList<Square>> ();
 	// This is used for printing. Could be done away with with a little thought.
-	protected HashMap <Square,Orientation> wallLookup = new HashMap<Square,Orientation>();
 	Square player1Square = new Square("e9");
 	Square player2Square = new Square("e1");
 	LinkedList <Wall> walls = new LinkedList<Wall>();
@@ -48,7 +47,6 @@ public class GameState {
 			list.addAll(gs.adjacencyList.get(sq));
 			adjacencyList.put(sq, list);
 		}
-		wallLookup = new HashMap<Square,Orientation>(gs.wallLookup);
 		player1Square = new Square(gs.player1Square);
 		player2Square = new Square(gs.player2Square);
 		walls.addAll(gs.walls);
@@ -91,14 +89,22 @@ public class GameState {
 		return !(shortestPathToRow(player1Square, 0).isEmpty() || shortestPathToRow(player2Square, 8).isEmpty());
 	}
 
-	private boolean hasPlayer (int i, int j) {
+	protected boolean hasPlayer (int i, int j) {
 		// TODO Should restrict return values to be injective. (The rounding down of division could is potentially problematic).  
 		Square transformedPosition = new Square((i-1)>>1,(j-1)>>1);
 		return player1Square.equals(transformedPosition) || player2Square.equals(transformedPosition);
 	}
 
-	private boolean hasWall (int i, int j) {
-		return wallLookup.containsKey(new Square(i, j));
+	protected boolean hasWall (int i, int j) {
+		if (i%2==0) {
+			return walls.contains(new Wall(CoordToSquare(i-1, j), Orientation.HORIZONTAL)) || walls.contains(new Wall(CoordToSquare(i-1, j-2), Orientation.HORIZONTAL));
+		} else {
+			return walls.contains(new Wall(CoordToSquare(i, j-1), Orientation.VERTICAL)) || walls.contains(new Wall(CoordToSquare(i-2, j-1), Orientation.VERTICAL));
+		}
+	}
+	
+	protected Square CoordToSquare (int i, int j) {
+		return new Square((i-1)>>1, (j-1)>>1);
 	}
 
 	public int heuristic() {
@@ -238,13 +244,9 @@ public class GameState {
 		if (wall.getOrientation() == Orientation.HORIZONTAL) {
 			removeEdge(wall.northWest, wall.northWest.neighbor(1, 0));
 			removeEdge(wall.northWest.neighbor(0, 1), wall.northWest.neighbor(1,1));
-			wallLookup.put(new Square((wall.getNorthWest().getRow()+1)<<1,((wall.getNorthWest().getColumn()+1)<<1)+1), wall.getOrientation());
-			wallLookup.put(new Square((wall.getNorthWest().getRow()+1)<<1,((wall.getNorthWest().getColumn()+1)<<1)-1), wall.getOrientation());
 		} else {
 			removeEdge(wall.northWest, wall.northWest.neighbor(0, 1));
 			removeEdge(wall.northWest.neighbor(1, 0), wall.northWest.neighbor(1,1));
-			wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)+1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
-			wallLookup.put(new Square(((wall.getNorthWest().getRow()+1)<<1)-1,(wall.getNorthWest().getColumn()+1)<<1), wall.getOrientation());
 		}
 	}
 	
