@@ -1,15 +1,14 @@
 	package quoridor;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.StringTokenizer;
 
 public class UserInterface {
 	
@@ -23,66 +22,71 @@ public class UserInterface {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
-		String menu = "\t********MENU********\n\t\t***Options***\n1:Human vs Human\t2:Human vs AI\t3:Load Saved Game";
-		System.out.print(menu);
-		Boolean validInput = false;
+		Scanner sc = new Scanner(System.in);
 		Player player1 = new HumanPlayer();
 		Player player2 = new HumanPlayer();
-		while (!validInput) { 
-			String command = null;
-			Scanner in = new Scanner(System.in);
-			command = in.nextLine();
-			if (command.equals("1")) {
-				validInput = true;
-			}
-			else if (command.equals("2")) {
-				validInput = true;
-				int ai = 2;
-				boolean validLevel = false;
-				while (!validLevel) {
-					System.out.println("Enter the level of AI expertise: (1-4)");
-					ai = in.nextInt();
-					if (ai == 1) {
-						validLevel = true;
-						player2 = new ForrestGump();
-					} else if (ai <= 4) {
-						validLevel = true;
-						player2 = new Miranda(ai);
-					}
-					else {
-						System.out.println("Invalid level number");
-					}
-				}
-			}
-			else if (command.equals("3")) {
-				System.out.println("Enter file name:");
-				String FileName = null;
-				Scanner fileIn = new Scanner(System.in);
-				FileName = fileIn.nextLine();
-				BufferedReader br = new BufferedReader(new FileReader(FileName));
-				try {
-					StringBuilder sb = new StringBuilder();
-					String line = br.readLine();
-					
-					while (line != null) {
-						sb.append(line);
-						sb.append("\n");
-						line = br.readLine();
-					}
-					String gameString = sb.toString();
-					System.out.println(gameString);
-				} catch(FileNotFoundException e) {
-					System.err.println(e.getMessage());
-				} finally {
-					br.close();
-				}
-			}
-			else {
-				System.out.print("Invalid selection\nInput selection:");
-			}
-		}
-		String move = new String();
 		GameState gs = new GameState();
+		String s = new String();
+		String move = new String();
+		int lvl = 0;
+		boolean valid;
+		do {
+			System.out.print("Quoridor - (N)ew Game | (L)oad Game: ");
+			s = sc.nextLine();
+			if (s.equalsIgnoreCase("n")) {
+				valid = true;
+				do {
+					System.out.print("Human vs. (H)uman | Human vs. (A)I: ");
+					s = sc.nextLine();
+					if (s.equalsIgnoreCase("h")) {
+						valid = true;
+					} else if (s.equalsIgnoreCase("a")) {
+						valid = true;
+						do {
+							System.out.print("Difficulty [1-4]: ");
+							lvl = sc.nextInt();
+							if (lvl > 0 && lvl < 5) {
+								valid = true;
+								if (lvl == 1) {
+									player2 = new ForrestGump();
+								} else {
+									player2 = new Miranda(lvl);
+								}
+							} else {
+								valid = false;
+							}
+						} while (!valid);
+					} else {
+						valid = false;
+					}
+				} while (!valid);
+			} else if (s.equalsIgnoreCase("l")) {
+				valid = true;
+				File file;
+				do {
+					System.out.print("Enter filename: ");
+					file = new File(sc.nextLine());
+				} while (!file.exists());
+		        try {
+		            Scanner scanner = new Scanner(file);
+		            lvl = Integer.valueOf(scanner.nextLine());
+		            player1 = scanner.nextLine().equalsIgnoreCase("HumanPlayer") ? new HumanPlayer() : (lvl == 1 ? new ForrestGump(): new Miranda(lvl));
+		            player2 = scanner.nextLine().equalsIgnoreCase("HumanPlayer") ? new HumanPlayer() : (lvl == 1 ? new ForrestGump(): new Miranda(lvl));
+		            String movesString = scanner.nextLine();
+		            movesString = movesString.substring(1, movesString.length()-1);
+		            StringTokenizer st = new StringTokenizer(movesString, ", "); 
+		            while (st.hasMoreTokens()) {
+		            	moves.add(st.nextToken());
+		            }
+		            gs = new GameState(moves);
+		            scanner.close();
+		        } catch (FileNotFoundException e) {
+		            e.printStackTrace();
+		        }
+			} else {
+				valid = false;
+			}
+		} while (!valid);
 		while(!gs.isOver()) {
 			if (gs.currentPlayer() == 0) {
 				move = player1.getMove(gs);
@@ -91,8 +95,7 @@ public class UserInterface {
 			}
 			if (move.equalsIgnoreCase("s")) {	
 				try {
-					String content = "["+player1.getClass().getSimpleName()+"] ["+player2.getClass().getSimpleName()+"] "+moves.toString();
-					Scanner sc = new Scanner(System.in);
+					String content = lvl + "\n"+player1.getClass().getSimpleName()+"\n"+player2.getClass().getSimpleName()+"\n"+moves.toString();
 					File file;
 					do {
 						System.out.print("Enter filename: ");
