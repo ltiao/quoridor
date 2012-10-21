@@ -18,7 +18,7 @@
 	*	Wall
 *	`3380062` Jeffrey Loong
 	*	Client
-	*	*list them here*
+	*	Board
 	
 ## Summary
 
@@ -100,7 +100,7 @@ Some implementation limitations include:
 In light of the above shortcomings that the adjacency list bears, it would be better to do away with it completely, and this was touted for in the version to be submitted but has not been done, and probably will not be done in time.
 
 ## Teamwork Reflection
-*	Did the team work together effectively?
-*	Was there a dominant person?
-*	Does one person deserve extra credit?
-*	Did anyone not contribute effectively at all?
+*	Did the team work together effectively? Yes
+*	Was there a dominant person? No
+*	Does one person deserve extra credit? Yes - *Louis Tiao*
+*	Did anyone not contribute effectively at all? No
