@@ -61,12 +61,39 @@ Perhaps a hybrid of 3 above and the current evaluation function would yield a le
 
 ## Design Reflection
 
-The encapsulation of data fields related to the state of the game into the `GameState` class made implementing other classes very simple. 
+The encapsulation of data fields related to the state of the game into the `GameState` class made implementing other classes very simple. Furthermore, the responsibilities were divided into each separate class in a logical manner, so when core functionality was implemented, all else that followed became very easy.
+
+Additionally, the `Player` interface provides a very good level abstraction for classes implementing human and AI players respectively. This means that the game manager is programmed to this interface and can thus run independent of who is a human player and who is an AI player.
+
+While this `Player` interface was a good design decision, it is the *only* interface, and the design shortcomings can be attributed to the lack of interfaces. Practically all classes rely on other classes so any changes to the implementation can result in erratic behaviour. This is a key design flaw that has permeated since the conception of this design.   
+
+A noteworthy design shortcoming is the lack of design patterns where due. For example, the AI player, under different contexts are subject to different behaviours (e.g. when out of walls, etc.) The Strategy design pattern could have come into good use and allowed us to dynamically change AI strategies during runtime.
+
+The Template Pattern could have been used for the game manager.
+
+The Iterator Pattern could have been used by `GameState` to allow for iteration of child states.
+
+These are the main design flaws that if detected earlier could have streamlined the development process and allowed for extensibility of our software components. Other key implementation limitations are described below.
 
 ## Implementation Reflection
 
+Some implementation limitations include:
+
+*	Two Player
+	
+	The implementation of this game only takes into account 2 players. Though extending the game to 4 players would not be too difficult, it is definitely non-trivial.
+	
 *	Adjacency List and speed
-*	Adjacency inconsistency and inaccuracy
+
+	The adjacency list used by the `GameState` is a HashMap with Square as key and a List of Squares as values. This renders deep copying of `GameState`s quite costly, an operation heavily used by the alpha-beta pruning algorithm in child state exploration. To make a deep copy of of this list, we cannot simply pass our old HashMap to a copy constructor, as the references to the Lists would remain the same. Instead, we have to iterate through the HashMap and add all items of 81 lists individually. This adds unnecessary time complexity that makes minimax of levels deeper than 4 practically impossible.
+
+*	Node adjacency inconsistency and inaccuracy
+
+	The adjacency list is used frequently to generate valid traversals from a given `Square`. This is clearly wrong and fails to take into account jump traversals. This method of neighbour generation is employed by the path searching algorithm provided in the `GameState` class and will cause problems with AI's that rely on this to find shortest paths. While the method which generates valid moves from the current state does not use this list to infer neighbouring nodes, the is a minor implementation flaw that also does not account for jump moves.
+	
+	The adjacency list is really a huge space trade-off for a little speed, that ends up being spent on copying the list. The adjacency list only serves to encapsulate adjacency of `Square`s in the presence of walls and nothing else. Instead, the `isValidTraversal` method should simply look in a 2-neighbourhood of the square, and infer if there is a wall obstructing the destination square, along with the other operations it performs, independent of the adjacency list.  
+	
+In light of the above shortcomings that the adjacency list bears, it would be better to do away with it completely, and this was touted for in the version to be submitted but has not been done, and probably will not be done in time.
 
 ## Teamwork Reflection
 *	Did the team work together effectively?
