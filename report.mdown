@@ -83,15 +83,15 @@ These are the main design flaws that if detected earlier could have streamlined 
 
 Some implementation limitations include:
 
-*	Two Player
-	
+*	**Two Player**
+
 	The implementation of this game only takes into account 2 players. Though extending the game to 4 players would not be too difficult, it is definitely non-trivial.
 	
-*	Adjacency List and speed
+*	**Adjacency List and speed**
 
 	The adjacency list used by the `GameState` is a HashMap with Square as key and a List of Squares as values. This renders deep copying of `GameState`s quite costly, an operation heavily used by the alpha-beta pruning algorithm in child state exploration. To make a deep copy of of this list, we cannot simply pass our old HashMap to a copy constructor, as the references to the Lists would remain the same. Instead, we have to iterate through the HashMap and add all items of 81 lists individually. This adds unnecessary time complexity that makes minimax of levels deeper than 4 practically impossible.
 
-*	Node adjacency inconsistency and inaccuracy
+*	**Node adjacency inconsistency and inaccuracy**
 
 	The adjacency list is used frequently to generate valid traversals from a given `Square`. This is clearly wrong and fails to take into account jump traversals. This method of neighbour generation is employed by the path searching algorithm provided in the `GameState` class and will cause problems with AI's that rely on this to find shortest paths. While the method which generates valid moves from the current state does not use this list to infer neighbouring nodes, the is a minor implementation flaw that also does not account for jump moves.
 	
