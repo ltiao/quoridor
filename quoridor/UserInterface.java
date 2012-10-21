@@ -1,7 +1,8 @@
-package quoridor;
+	package quoridor;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -88,15 +89,27 @@ public class UserInterface {
 			} else {
 				move = player2.getMove(gs);
 			}
-			if (move.equalsIgnoreCase("s")) {
-				
-				try{ 
-					FileWriter fstream = new FileWriter("out.txt");
-					BufferedWriter out = new BufferedWriter(fstream);
-					out.write("Hello Java");
-					out.close();
-				} catch (Exception e){//Catch exception if any
-					System.err.println("Error: " + e.getMessage());
+			if (move.equalsIgnoreCase("s")) {	
+				try {
+					String content = "["+player1.getClass().getSimpleName()+"] ["+player2.getClass().getSimpleName()+"] "+moves.toString();
+					Scanner sc = new Scanner(System.in);
+					File file;
+					do {
+						System.out.print("Enter filename: ");
+						file = new File(sc.nextLine()+".qr");
+					} while (file.exists());
+					
+					file.createNewFile();
+		 
+					FileWriter fw = new FileWriter(file.getAbsoluteFile());
+					BufferedWriter bw = new BufferedWriter(fw);
+					bw.write(content);
+					bw.close();
+		 
+					System.out.println("Game saved successfully.");
+		 
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
 			} else if (move.equalsIgnoreCase("u")) {
 				//System.out.println(moves.subList(0, gs.turn-2));
