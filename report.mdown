@@ -9,9 +9,13 @@
 
 *	`3390558` Chi-Chun Tiao
 	*	GameState
+	*	AIPlayer
+	*	HumanPlayer
 	*	Validator
 	*	Board
 	*	Client
+	*	Square
+	*	Wall
 *	`student_id` Jeffrey Loong
 	*	Client
 	*	List them
