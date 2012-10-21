@@ -1,12 +1,18 @@
 package quoridor;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
 
 public class UserInterface {
+	
+	static List <String> moves = new LinkedList <String>();
 	
 	/**
 	 * Prints out a menu before allowing the user to select what game type 
@@ -63,6 +69,9 @@ public class UserInterface {
 						line = br.readLine();
 					}
 					String gameString = sb.toString();
+					System.out.println(gameString);
+				} catch(FileNotFoundException e) {
+					System.err.println(e.getMessage());
 				} finally {
 					br.close();
 				}
@@ -79,13 +88,36 @@ public class UserInterface {
 			} else {
 				move = player2.getMove(gs);
 			}
-			if (!gs.move(move)) {
+			if (move.equalsIgnoreCase("s")) {
+				
+				try{ 
+					FileWriter fstream = new FileWriter("out.txt");
+					BufferedWriter out = new BufferedWriter(fstream);
+					out.write("Hello Java");
+					out.close();
+				} catch (Exception e){//Catch exception if any
+					System.err.println("Error: " + e.getMessage());
+				}
+			} else if (move.equalsIgnoreCase("u")) {
+				//System.out.println(moves.subList(0, gs.turn-2));
+				if (gs.turn() >= 2) {
+					gs = new GameState(moves.subList(0, gs.turn()-2));	
+				} else {
+					System.out.println("Nothing to undo!");
+				}
+			} else if (move.equalsIgnoreCase("r")) {
+				if (gs.turn()+2 <= moves.size()) {
+					gs = new GameState(moves.subList(0, gs.turn()+2));
+				} else {
+					System.out.println("Nothing to redo!");
+				}
+			} else if (!gs.move(move)) {
 				System.out.println("Invalid move");
 			} else {
-				
+				moves.add(move);
 			}
 		}
-		System.out.println("Game Over!");
+		System.out.println("Game Over! The winner is player "+gs.winnerIcon()+"!");
 	}
 
 }

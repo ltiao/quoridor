@@ -55,7 +55,7 @@ public class GameState {
 	}
 	
 	public GameState(List <String> moves) {
-		new GameState();
+		this();
 		for (String e:moves) {
 			move(e);
 		}
@@ -116,6 +116,14 @@ public class GameState {
 	 */
 	public boolean isOver() {
 		return player1Square.getRow() == 0 || player2Square.getRow() == 8;
+	}
+	
+	public int winner () {
+		return player1Square.getRow() == 0 ? 0 : 1;
+	}
+	
+	public char winnerIcon () {
+		return winner() == 0 ? PLAYER_1_ICON : PLAYER_2_ICON;
 	}
 
 	protected boolean isTraversal (String move) {
@@ -345,7 +353,7 @@ public class GameState {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Turn: "+turn+" | Player to Move: "+currentPlayer()+" | Walls Remaining: "+(10-currentPlayerNumWalls())+"\n");
+		sb.append("Turn: "+turn+" | Player to Move: "+(currentPlayer() == 0 ? PLAYER_1_ICON : PLAYER_2_ICON)+" | Walls Remaining: "+(10-currentPlayerNumWalls())+"\n");
 		sb.append("   ");
 		for (char c = 'a' ; c < 'j' ; c++)
 			sb.append(c+"   ");
@@ -396,5 +404,4 @@ public class GameState {
 		}
 		return validMoves;
 	}
-
 }

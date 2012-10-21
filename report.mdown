@@ -1,0 +1,53 @@
+# COMP2911 Project: Quoridor
+### Design Report
+***
+#### 21 October 2012
+
+## Team Membership
+
+**Contributions (by class):**
+
+*	`3390558` Chi-Chun Tiao
+	*	GameState
+	*	Validator
+	*	Board
+	*	Client
+*	`student_id` Jeffrey Loong
+	*	Client
+	*	List them
+	
+## Summary
+
+### Behaviour of Provided Tests
+
+All tests passed.
+
+### Features
+
+1.	Utility-based Intelligent Agent. Minimax implementation with alpha-beta pruning algorithm and utility (scoring) function.
+2.	Game Management
+	*	Undo/Redo
+	*	Game Save/Load
+
+## Details
+
+This application relies heavily on the `GameState`. The game could be said to be validated *cumulatively*, in the sense that a move is passed to the mutator method of the class, and the fields of this class are only mutated if the move is valid from the current game state. If the move is invalid, the mutator does not update any fields and simply returns a boolean value of `false`.
+
+As such, it is evident that the Validator class itself does not do any validating. It simply attempts to iterate through its list of strings and mutate the game state during every iteration, returning `false` as soon as any move is found to be invalid.
+
+The `UserInterface` class acts as a game 
+
+Having discussed all the components that rely on the `GameState`, we now turn to the details of the `GameState` itself.
+
+
+
+
+## Design Reflection
+
+## Implementation Reflection
+
+## Teamwork Reflection
+* Did the team work together effectively?
+* Was there a dominant person?
+* Does one person deserve extra credit?
+* Did anyone not contribute effectively at all?
